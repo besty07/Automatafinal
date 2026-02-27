@@ -21,7 +21,8 @@ const GRAY_TEXT = '#555';
 const BORDER = '#C8E6C9';
 
 // ⚠️ IMPORTANT: Keep your OpenWeather API Key here
-const API_KEY = process.env.EXPO_PUBLIC_WEATHER_KEY;
+const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_WEATHER_KEY;
+console.log("KEY:", process.env.EXPO_PUBLIC_WEATHER_KEY);
 
 export default function WeatherScreen() {
   const [location, setLocation] = useState('');
