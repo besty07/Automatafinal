@@ -58,7 +58,7 @@ export default function HedgingScreen() {
       if (status !== 'granted') return;
       const sub = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.Highest, timeInterval: 2000, distanceInterval: 1 },
-        (pos) => {
+        (pos: Location.LocationObject) => {
           setLiveCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
         }
       );
