@@ -127,7 +127,11 @@ export default function LoggedInHome() {
         </View>
 
         {/* Start Hedging button */}
-        <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.primaryBtn}
+          activeOpacity={0.85}
+          onPress={() => router.push('/(home)/hedging' as any)}
+        >
           <Text style={styles.primaryBtnText}>{t.startHedging}</Text>
           <MaterialIcons name="arrow-forward" size={20} color="#fff" />
         </TouchableOpacity>

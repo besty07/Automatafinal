@@ -132,6 +132,41 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* ── Dealer Section ── */}
+        <View style={styles.dealerCard}>
+          <View style={styles.dealerCardHeader}>
+            <View style={styles.dealerIconCircle}>
+              <MaterialIcons name="storefront" size={26} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.dealerCardTitle}>{t.dealerSectionTitle}</Text>
+              <View style={styles.dealerBadge}>
+                <MaterialIcons name="business" size={11} color="#1A5276" />
+                <Text style={styles.dealerBadgeText}>DEALER PORTAL</Text>
+              </View>
+            </View>
+          </View>
+          <Text style={styles.dealerCardDesc}>{t.dealerSectionDesc}</Text>
+          <View style={styles.dealerBtnRow}>
+            <TouchableOpacity
+              style={styles.dealerSignUpBtn}
+              onPress={() => router.push('/dealer-signup' as any)}
+              activeOpacity={0.85}
+            >
+              <MaterialIcons name="person-add" size={16} color="#1A5276" />
+              <Text style={styles.dealerSignUpText}>{t.dealerSignUpLabel}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dealerLoginBtn}
+              onPress={() => router.push('/dealer-login' as any)}
+              activeOpacity={0.85}
+            >
+              <MaterialIcons name="login" size={16} color="#fff" />
+              <Text style={styles.dealerLoginText}>{t.dealerLoginLabel}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Bottom padding so FAB doesn't cover last card */}
         <View style={{ height: 80 }} />
       </ScrollView>
@@ -394,5 +429,95 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
+  },
+
+  /* Dealer section card */
+  dealerCard: {
+    backgroundColor: '#EAF2F8',
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: '#AED6F1',
+  },
+  dealerCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 10,
+  },
+  dealerIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1A5276',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dealerCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1B2340',
+    marginBottom: 4,
+  },
+  dealerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#D6EAF8',
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#1A5276',
+  },
+  dealerBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#1A5276',
+    letterSpacing: 0.8,
+  },
+  dealerCardDesc: {
+    fontSize: 13,
+    color: GRAY_TEXT,
+    lineHeight: 19,
+    marginBottom: 14,
+  },
+  dealerBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  dealerSignUpBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: '#1A5276',
+    borderRadius: 12,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+  },
+  dealerSignUpText: {
+    color: '#1A5276',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  dealerLoginBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#1A5276',
+    borderRadius: 12,
+    paddingVertical: 10,
+  },
+  dealerLoginText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
   },
 });
