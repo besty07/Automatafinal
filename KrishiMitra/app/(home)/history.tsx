@@ -1,58 +1,50 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import LangPicker from '@/components/lang-picker';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
 const DARK_TEXT = '#1B2B1C';
 const GRAY_TEXT = '#555';
 
-const MOCK_HISTORY = [
-  {
-    id: '1',
-    crop: 'Wheat',
-    quantity: '50 qtl',
-    lockedPrice: '₹2,500/qtl',
-    date: '15 Jan 2026',
-    status: 'Active',
-    profit: '+₹12,500',
-  },
-  {
-    id: '2',
-    crop: 'Soybeans',
-    quantity: '30 qtl',
-    lockedPrice: '₹4,100/qtl',
-    date: '2 Dec 2025',
-    status: 'Completed',
-    profit: '+₹4,500',
-  },
-  {
-    id: '3',
-    crop: 'Rice',
-    quantity: '80 qtl',
-    lockedPrice: '₹3,000/qtl',
-    date: '18 Nov 2025',
-    status: 'Completed',
-    profit: '-₹2,000',
-  },
-  {
-    id: '4',
-    crop: 'Cotton',
-    quantity: '20 qtl',
-    lockedPrice: '₹6,900/qtl',
-    date: '5 Oct 2025',
-    status: 'Completed',
-    profit: '+₹6,000',
-  },
-];
+const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
+  New:         { label: 'Pending',     bg: '#FFF8E1', color: '#F9A825' },
+  Negotiating: { label: 'Negotiating', bg: '#E3F2FD', color: '#1565C0' },
+  Accepted:    { label: 'Accepted',    bg: '#E8F5E9', color: GREEN      },
+  Completed:   { label: 'Completed',   bg: '#F3E5F5', color: '#6A1B9A'  },
+  Declined:    { label: 'Declined',    bg: '#FFEBEE', color: '#C62828'  },
+};
 
 export default function HistoryScreen() {
   const { t } = useLanguage();
+  const [deals, setDeals]     = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) { setLoading(false); return; }
+
+    const q = query(
+      collection(db, 'deals'),
+      where('farmerId', '==', uid),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      setDeals(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, []);
+
   return (
     <View style={styles.root}>
-      {/* Header */}
+      {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>{t.historyTitle}</Text>
@@ -61,71 +53,81 @@ export default function HistoryScreen() {
         <Text style={styles.headerSub}>{t.historySubtitle}</Text>
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {MOCK_HISTORY.map((item) => {
-          const isProfit = item.profit.startsWith('+');
-          return (
-            <View key={item.id} style={styles.card}>
-              <View style={styles.cardTop}>
-                <View style={styles.cropIcon}>
-                  <MaterialIcons name="grass" size={22} color="#fff" />
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={GREEN} />
+        </View>
+      ) : deals.length === 0 ? (
+        <View style={styles.centered}>
+          <MaterialIcons name="history" size={52} color="#C8E6C9" />
+          <Text style={styles.emptyText}>
+            No deals yet.{"\n"}Start hedging to see your history here.
+          </Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {deals.map((item) => {
+            const cfg = STATUS_CONFIG[item.status] ?? STATUS_CONFIG['New'];
+            return (
+              <View key={item.id} style={styles.card}>
+                <View style={styles.cardTop}>
+                  <View style={styles.cropIcon}>
+                    <MaterialIcons name="grass" size={22} color="#fff" />
+                  </View>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cropName}>{item.crop}</Text>
+                    <Text style={styles.cardMeta}>
+                      {item.quantity}  •  {item.date ?? '—'}
+                    </Text>
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
+                    <Text style={[styles.badgeText, { color: cfg.color }]}>
+                      {cfg.label}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cropName}>{item.crop}</Text>
-                  <Text style={styles.cardMeta}>
-                    {item.quantity}  •  {item.date}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.badge,
-                    { backgroundColor: item.status === 'Active' ? '#E8F5E9' : '#F5F5F5' },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.badgeText,
-                      { color: item.status === 'Active' ? GREEN : '#888' },
-                    ]}
-                  >
-                    {item.status}
-                  </Text>
-                </View>
-              </View>
 
-              <View style={styles.cardBottom}>
-                <View style={styles.stat}>
-                  <Text style={styles.statLabel}>{t.lockedPrice}</Text>
-                  <Text style={styles.statValue}>{item.lockedPrice}</Text>
-                </View>
-                <View style={styles.divider} />
-                <View style={styles.stat}>
-                  <Text style={styles.statLabel}>{t.pandl}</Text>
-                  <Text
-                    style={[
-                      styles.statValue,
-                      { color: isProfit ? GREEN : '#E53935', fontWeight: '700' },
-                    ]}
-                  >
-                    {item.profit}
-                  </Text>
+                <View style={styles.cardBottom}>
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>{t.lockedPrice}</Text>
+                    <Text style={styles.statValue}>{item.askPrice ?? '—'}</Text>
+                  </View>
+                  <View style={styles.divider} />
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>Transport Date</Text>
+                    <Text style={styles.statValue}>{item.transportDate ?? '—'}</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          );
-        })}
-        <View style={{ height: 20 }} />
-      </ScrollView>
+            );
+          })}
+          <View style={{ height: 20 }} />
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: LIGHT_GREEN_BG },
+
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 60,
+  },
+  emptyText: {
+    marginTop: 12,
+    textAlign: 'center',
+    color: GRAY_TEXT,
+    fontSize: 14,
+    lineHeight: 22,
+  },
 
   header: {
     backgroundColor: LIGHT_GREEN_BG,
