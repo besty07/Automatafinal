@@ -1,6 +1,8 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -33,13 +35,31 @@ export default function HedgingScreen() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [location, setLocation] = useState('');
+  const [mapModal, setMapModal] = useState(false);
+  const [liveCoords, setLiveCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [watching, setWatching] = useState(false);
+  const mapRef = useRef(null);
   const [quantity, setQuantity] = useState('');
   const [harvestDate, setHarvestDate] = useState('');
   const [pricePerKg, setPricePerKg] = useState('');
   const [transportDate, setTransportDate] = useState('');
 
-  const handleDetectLocation = () => {
-    // To be wired with expo-location / backend later
+  const handleDetectLocation = async () => {
+    setMapModal(true);
+    if (watching) return;
+    setWatching(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      const sub = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.Highest, timeInterval: 2000, distanceInterval: 1 },
+        (pos) => {
+          setLiveCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        }
+      );
+      // Clean up on modal close
+      return () => sub.remove();
+    } catch {}
   };
 
   const handleSubmit = () => {
@@ -156,8 +176,72 @@ export default function HedgingScreen() {
               onPress={handleDetectLocation}
               activeOpacity={0.75}
             >
-              <MaterialIcons name="my-location" size={20} color={GREEN} />
+              <MaterialIcons name="add-location" size={20} color={GREEN} />
             </TouchableOpacity>
+            {/* Live GPS Map Modal */}
+            <Modal visible={mapModal} animationType="slide" onRequestClose={() => { setMapModal(false); setWatching(false); }}>
+              <View style={{ flex: 1 }}>
+                <View style={{ flex: 1 }}>
+                  {liveCoords && (
+                    <MapView
+                      ref={mapRef}
+                      style={{ flex: 1 }}
+                      region={{
+                        latitude: liveCoords.latitude,
+                        longitude: liveCoords.longitude,
+                        latitudeDelta: 0.005,
+                        longitudeDelta: 0.005,
+                      }}
+                      showsUserLocation
+                      followsUserLocation
+                    >
+                      <Marker coordinate={liveCoords} pinColor="blue" />
+                    </MapView>
+                  )}
+                  {!liveCoords && (
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text>Getting live location…</Text>
+                    </View>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={{ backgroundColor: GREEN, padding: 18, alignItems: 'center' }}
+                  onPress={async () => {
+                    if (liveCoords) {
+                      try {
+                        const rev = await Location.reverseGeocodeAsync(liveCoords);
+                        const place = rev[0];
+                        if (place) {
+                          // Ignore generic names like 'Shop No. 1', prefer street/city/region/country
+                          const genericNames = ['Shop No. 1', 'Unnamed Road', ''];
+                          const addressParts = [
+                            place.street,
+                            place.city || place.subregion,
+                            place.region,
+                            place.country,
+                            place.postalCode
+                          ].filter(Boolean);
+                          // Only show address if it has city/region/country
+                          if (addressParts.length >= 2) {
+                            setLocation(addressParts.join(', '));
+                          } else {
+                            setLocation(`Lat: ${liveCoords.latitude.toFixed(6)}, Lng: ${liveCoords.longitude.toFixed(6)}`);
+                          }
+                        } else {
+                          setLocation(`Lat: ${liveCoords.latitude}, Lng: ${liveCoords.longitude}`);
+                        }
+                      } catch {
+                        setLocation(`Lat: ${liveCoords.latitude}, Lng: ${liveCoords.longitude}`);
+                      }
+                    }
+                    setMapModal(false);
+                    setWatching(false);
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Use This Location</Text>
+                </TouchableOpacity>
+              </View>
+            </Modal>
           </View>
 
           {/* ── Quantity ── */}
