@@ -153,6 +153,7 @@ export default function LoggedInHome() {
                 }
                 if (i === 0) router.push('/(home)/gov-schemes' as any);
                 if (i === 2) router.push('/(home)/resources' as any);
+                if (i === 3) router.push('/(home)/agri-suggest' as any);
                 if (i === 5) router.push('/(home)/reminders' as any);
               }}
             >
