@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import LangPicker from '@/components/lang-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -26,21 +28,23 @@ const TICKER_ITEMS = [
   { name: 'Maize', price: '₹1,980', change: '-1.8%', up: false },
 ];
 
-const HEDGING_STEPS = [
-  { icon: 'grass' as const, text: 'Select Crop' },
-  { icon: 'calendar-today' as const, text: 'Enter Quantity & Dates' },
-  { icon: 'lock' as const, text: 'Lock in Price' },
-  { icon: 'description' as const, text: 'Secure Contract' },
-];
-
-const FEATURE_TILES = [
-  { icon: 'receipt-long' as const, label: 'Gov Schemes' },
-  { icon: 'cloud' as const, label: 'Weather' },
-  { icon: 'eco' as const, label: 'Crop & Seed\nSelector' },
-  { icon: 'spa' as const, label: 'Fertilizer\nSelection' },
-];
-
 export default function LoggedInHome() {
+  const { t } = useLanguage();
+
+  const HEDGING_STEPS = [
+    { icon: 'grass' as const, text: t.step1 },
+    { icon: 'calendar-today' as const, text: t.step2 },
+    { icon: 'lock' as const, text: t.step3 },
+    { icon: 'description' as const, text: t.step4 },
+  ];
+
+  const FEATURE_TILES = [
+    { icon: 'receipt-long' as const, label: t.tileGovSchemes },
+    { icon: 'cloud' as const, label: t.tileWeather },
+    { icon: 'eco' as const, label: t.tileCropSeed },
+    { icon: 'spa' as const, label: t.tileFertilizer },
+  ];
+
   // ── Ticker animation ──
   const tickerX = useRef(new Animated.Value(0)).current;
   const TICKER_CONTENT_W = TICKER_ITEMS.length * 180;
@@ -75,6 +79,7 @@ export default function LoggedInHome() {
           <TouchableOpacity style={styles.headerIcon}>
             <MaterialIcons name="language" size={20} color={DARK_TEXT} />
           </TouchableOpacity>
+          <LangPicker />
           <TouchableOpacity style={styles.headerIcon}>
             <MaterialIcons name="person" size={20} color={DARK_TEXT} />
           </TouchableOpacity>
@@ -107,7 +112,7 @@ export default function LoggedInHome() {
       >
         {/* Steps card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Steps for How to Do Hedging</Text>
+          <Text style={styles.cardTitle}>{t.stepsTitle}</Text>
           {HEDGING_STEPS.map((step, i) => (
             <View key={i} style={styles.stepRow}>
               <View style={styles.stepIconCircle}>
@@ -123,7 +128,7 @@ export default function LoggedInHome() {
 
         {/* Start Hedging button */}
         <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
-          <Text style={styles.primaryBtnText}>Start Hedging</Text>
+          <Text style={styles.primaryBtnText}>{t.startHedging}</Text>
           <MaterialIcons name="arrow-forward" size={20} color="#fff" />
         </TouchableOpacity>
 
@@ -145,7 +150,7 @@ export default function LoggedInHome() {
             <View style={styles.tileIconCircle}>
               <MaterialIcons name="bar-chart" size={28} color="#fff" />
             </View>
-            <Text style={styles.tileLabel}>Historical Data</Text>
+            <Text style={styles.tileLabel}>{t.tileHistorical}</Text>
           </TouchableOpacity>
         </View>
 

@@ -1,10 +1,14 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+
 import { Alert } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig'; // Ensure this path matches your file structure
+
+import LangPicker from '@/components/lang-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -23,6 +27,7 @@ const GRAY_TEXT = '#555';
 const BORDER = '#C8E6C9';
 
 export default function SignupScreen() {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState(''); // Added Email state
@@ -76,33 +81,38 @@ export default function SignupScreen() {
           <MaterialIcons name="arrow-back" size={24} color={GREEN} />
         </TouchableOpacity>
 
+        {/* Lang picker */}
+        <View style={styles.langRow}>
+          <LangPicker />
+        </View>
+
         {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.logoCircle}>
             <MaterialIcons name="trending-up" size={38} color="#fff" />
           </View>
           <Text style={styles.appTitle}>Krishi-Mitra</Text>
-          <Text style={styles.appSubtitle}>Join thousands of farmers today</Text>
+          <Text style={styles.appSubtitle}>{t.joinFarmers}</Text>
         </View>
 
         {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Create your account</Text>
+          <Text style={styles.cardTitle}>{t.createAccount}</Text>
 
           {/* Full Name */}
           <InputField
-            label="Full Name"
+            label={t.fullName}
             icon="person"
-            placeholder="Enter your full name"
+            placeholder={t.fullNamePlaceholder}
             value={name}
             onChangeText={setName}
           />
 
           {/* Phone */}
           <InputField
-            label="Phone Number"
+            label={t.phoneNumber}
             icon="phone"
-            placeholder="Enter your phone number"
+            placeholder={t.phonePlaceholder}
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
@@ -120,20 +130,20 @@ export default function SignupScreen() {
 
           {/* State */}
           <InputField
-            label="State / District"
+            label={t.stateDistrict}
             icon="location-on"
-            placeholder="e.g. Maharashtra, Pune"
+            placeholder={t.statePlaceholder}
             value={state}
             onChangeText={setState}
           />
 
           {/* Password */}
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{t.createPassword}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="lock" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { flex: 1 }]}
-              placeholder="Create a password"
+              placeholder={t.createPasswordPlaceholder}
               placeholderTextColor="#aaa"
               secureTextEntry={!showPass}
               value={password}
@@ -150,12 +160,12 @@ export default function SignupScreen() {
           </View>
 
           {/* Confirm Password */}
-          <Text style={styles.label}>Confirm Password</Text>
+          <Text style={styles.label}>{t.confirmPassword}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="lock-outline" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { flex: 1 }]}
-              placeholder="Re-enter your password"
+              placeholder={t.confirmPlaceholder}
               placeholderTextColor="#aaa"
               secureTextEntry={!showConfirm}
               value={confirm}
@@ -177,23 +187,23 @@ export default function SignupScreen() {
             onPress={handleSignup}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryBtnText}>Create Account</Text>
+            <Text style={styles.primaryBtnText}>{t.createAccountBtn}</Text>
             <MaterialIcons name="arrow-forward" size={20} color="#fff" />
           </TouchableOpacity>
 
           {/* Terms */}
           <Text style={styles.terms}>
-            By signing up, you agree to our{' '}
-            <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
+            {t.termsText}{' '}
+            <Text style={styles.termsLink}>{t.termsService}</Text> {t.and}{' '}
+            <Text style={styles.termsLink}>{t.privacyPolicy}</Text>
           </Text>
         </View>
 
         {/* Login redirect */}
         <View style={styles.bottomRow}>
-          <Text style={styles.bottomText}>Already have an account? </Text>
+          <Text style={styles.bottomText}>{t.haveAccount} </Text>
           <TouchableOpacity onPress={() => router.replace('/login' as any)}>
-            <Text style={styles.linkText}>Login</Text>
+            <Text style={styles.linkText}>{t.login}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -237,6 +247,7 @@ function InputField({
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: LIGHT_GREEN_BG },
+  langRow: { alignItems: 'flex-end', marginBottom: 8 },
   scroll: { paddingHorizontal: 20, paddingTop: 52, paddingBottom: 32 },
 
   backBtn: {

@@ -1,15 +1,19 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-import React, { useRef, useState } from 'react';
+// ── VOICE RECOGNITION (commented out until dev build) ──────────────────────
+// import {
+//   ExpoSpeechRecognitionModule,
+//   useSpeechRecognitionEvent,
+// } from 'expo-speech-recognition';
+// ───────────────────────────────────────────────────────────────────────────
+import LangPicker from '@/components/lang-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
+import React, { useRef } from 'react';
 import {
   Animated,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -22,59 +26,52 @@ const GRAY_TEXT = '#555';
 const DARK_TEXT = '#1B2B1C';
 const EXAMPLE_BG = '#F0F0F0';
 
-function processCommand(text: string) {
-  const cmd = text.toLowerCase().trim();
-  if (cmd.includes('login') || cmd.includes('log in')) {
-    router.push('/login' as any);
-    return true;
-  }
-  if (cmd.includes('sign up') || cmd.includes('signup') || cmd.includes('register')) {
-    router.push('/signup' as any);
-    return true;
-  }
-  return false;
-}
+// ── VOICE COMMANDS (commented out until dev build) ─────────────────────────
+// function processCommand(text: string) {
+//   const cmd = text.toLowerCase().trim();
+//   if (cmd.includes('login') || cmd.includes('log in')) {
+//     router.push('/login' as any);
+//     return true;
+//   }
+//   if (cmd.includes('sign up') || cmd.includes('signup') || cmd.includes('register')) {
+//     router.push('/signup' as any);
+//     return true;
+//   }
+//   return false;
+// }
+// ───────────────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [cmdText, setCmdText] = useState('');
-  const [error, setError] = useState('');
+  // const [listening, setListening] = useState(false);
+  const { t } = useLanguage();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  const startPulse = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.18, duration: 600, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      ])
-    ).start();
-  };
-  const stopPulse = () => {
-    pulseAnim.stopAnimation();
-    pulseAnim.setValue(1);
-  };
+  // ── VOICE RECOGNITION HOOKS (commented out until dev build) ──────────────
+  // useSpeechRecognitionEvent('start', () => setListening(true));
+  // useSpeechRecognitionEvent('end', () => { setListening(false); stopPulse(); });
+  // useSpeechRecognitionEvent('result', (event) => {
+  //   const transcript = (event.results?.[0]?.transcript ?? '').toLowerCase().trim();
+  //   if (transcript.length === 0) return;
+  //   const handled = processCommand(transcript);
+  //   if (!handled) {
+  //     Alert.alert('Command not recognised', `You said: "${transcript}"\n\nTry: "login" or "sign up"`);
+  //   }
+  // });
+  // useSpeechRecognitionEvent('error', (event) => {
+  //   setListening(false); stopPulse();
+  //   if (event.error !== 'aborted') Alert.alert('Mic error', event.error);
+  // });
+  // ─────────────────────────────────────────────────────────────────────────
 
-  const openVoiceModal = () => {
-    setCmdText('');
-    setError('');
-    setModalVisible(true);
-    startPulse();
-  };
-
-  const handleSubmit = () => {
-    const handled = processCommand(cmdText);
-    if (handled) {
-      setModalVisible(false);
-      stopPulse();
-    } else {
-      setError('Command not recognised. Try: "login" or "sign up"');
-    }
-  };
-
-  const handleClose = () => {
-    setModalVisible(false);
-    stopPulse();
-  };
+  // ── VOICE HANDLER (commented out until dev build) ─────────────────────────
+  // const handleVoice = async () => {
+  //   if (listening) { ExpoSpeechRecognitionModule.stop(); return; }
+  //   const { granted } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+  //   if (!granted) { Alert.alert('Permission required', 'Mic permission needed.'); return; }
+  //   startPulse();
+  //   ExpoSpeechRecognitionModule.start({ lang: 'en-US', continuous: false, interimResults: false });
+  // };
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <View style={styles.root}>
@@ -86,16 +83,13 @@ export default function HomeScreen() {
       >
         {/* ── Header ── */}
         <View style={styles.header}>
-          <View style={styles.langBtn}>
-            <MaterialIcons name="language" size={16} color={DARK_TEXT} />
-            <Text style={styles.langText}>EN</Text>
-          </View>
+          <LangPicker />
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.signUpBtn} onPress={() => router.push('/signup' as any)}>
-              <Text style={styles.signUpText}>Sign Up</Text>
+              <Text style={styles.signUpText}>{t.signUp}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/login' as any)}>
-              <Text style={styles.loginText}>Login</Text>
+              <Text style={styles.loginText}>{t.login}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -106,53 +100,34 @@ export default function HomeScreen() {
             <MaterialIcons name="trending-up" size={36} color="#fff" />
           </View>
           <Text style={styles.appTitle}>Krishi-Mitra</Text>
-          <Text style={styles.appSubtitle}>Your Trusted Agricultural Finance Partner</Text>
+          <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
         </View>
 
         {/* ── Our Mission Card ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Our Mission</Text>
-          <Text style={styles.missionDesc}>
-            Empowering farmers with financial tools to protect their income against price
-            fluctuations and access government schemes easily.
-          </Text>
+          <Text style={styles.cardTitle}>{t.ourMission}</Text>
+          <Text style={styles.missionDesc}>{t.missionDesc}</Text>
 
-          <FeatureRow
-            icon="security"
-            title="Price Protection"
-            desc="Secure your crop prices in advance and reduce financial risks"
-          />
-          <FeatureRow
-            icon="grass"
-            title="Government Schemes"
-            desc="Easy access to subsidies, insurance, and financial assistance"
-          />
-          <FeatureRow
-            icon="people"
-            title="Expert Support"
-            desc="24/7 assistance in your preferred language"
-          />
+          <FeatureRow icon="security" title={t.priceProtection} desc={t.priceProtectionDesc} />
+          <FeatureRow icon="grass" title={t.govSchemes} desc={t.govSchemesDesc} />
+          <FeatureRow icon="people" title={t.expertSupport} desc={t.expertSupportDesc} />
         </View>
 
         {/* ── What is Hedging Card ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>What is Hedging?</Text>
-          <Text style={styles.hedgingDesc}>
-            Hedging is a financial strategy to protect your income from unpredictable market price
-            changes.
-          </Text>
+          <Text style={styles.cardTitle}>{t.whatIsHedging}</Text>
+          <Text style={styles.hedgingDesc}>{t.hedgingDesc}</Text>
 
-          <Text style={styles.howTitle}>How It Works:</Text>
-          <BulletItem text="Lock in crop prices before harvest to avoid losses" />
-          <BulletItem text="Protect against market volatility and weather risks" />
-          <BulletItem text="Plan your finances with guaranteed minimum prices" />
-          <BulletItem text="Access expert market insights and price predictions" />
+          <Text style={styles.howTitle}>{t.howItWorks}</Text>
+          <BulletItem text={t.bullet1} />
+          <BulletItem text={t.bullet2} />
+          <BulletItem text={t.bullet3} />
+          <BulletItem text={t.bullet4} />
 
           <View style={styles.exampleBox}>
             <Text style={styles.exampleText}>
-              <Text style={styles.exampleBold}>Example: </Text>
-              If wheat is ₹2,500/qtl today, you can lock this price for your harvest 3 months from
-              now. Even if market price drops to ₹2,000, you still get ₹2,500.
+              <Text style={styles.exampleBold}>{t.exampleLabel}</Text>
+              {t.exampleText}
             </Text>
           </View>
         </View>
@@ -164,59 +139,13 @@ export default function HomeScreen() {
       {/* ── Floating "Tap to Speak" button ── */}
       <View style={styles.fabContainer}>
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <TouchableOpacity style={styles.fab} onPress={openVoiceModal} activeOpacity={0.85}>
+          {/* Voice handler disabled until dev build — swap onPress={handleVoice} when ready */}
+          <TouchableOpacity style={styles.fab} activeOpacity={0.85} onPress={() => {}}>            
             <MaterialIcons name="mic" size={20} color="#fff" />
-            <Text style={styles.fabText}>Tap to Speak</Text>
+            <Text style={styles.fabText}>{t.tapToSpeak}</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
-
-      {/* ── Voice Command Modal ── */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={handleClose}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.modalCard}>
-            {/* Animated mic icon */}
-            <Animated.View style={[styles.micCircle, { transform: [{ scale: pulseAnim }] }]}>
-              <MaterialIcons name="mic" size={32} color="#fff" />
-            </Animated.View>
-
-            <Text style={styles.modalTitle}>Voice Command</Text>
-            <Text style={styles.modalHint}>
-              Type your command below{`\n`}e.g.  "login"  or  "sign up"
-            </Text>
-
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Type command here…"
-              placeholderTextColor="#aaa"
-              value={cmdText}
-              onChangeText={(t) => { setCmdText(t); setError(''); }}
-              onSubmitEditing={handleSubmit}
-              autoFocus
-              autoCapitalize="none"
-            />
-
-            {error ? <Text style={styles.modalError}>{error}</Text> : null}
-
-            <View style={styles.modalBtns}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={handleClose}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalGoBtn} onPress={handleSubmit}>
-                <Text style={styles.modalGoText}>Go</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 }
@@ -276,22 +205,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
-  },
-  langBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#aaa',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    gap: 4,
-    backgroundColor: '#fff',
-  },
-  langText: {
-    fontSize: 13,
-    color: DARK_TEXT,
-    fontWeight: '600',
   },
   headerRight: {
     flexDirection: 'row',
@@ -476,99 +389,10 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
+  // fabListening: { backgroundColor: '#E53935' }, // uncomment with voice recognition
   fabText: {
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
   },
-
-  /* Voice Modal */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  modalCard: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 28,
-    alignItems: 'center',
-    paddingBottom: 36,
-  },
-  micCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: GREEN,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: GREEN,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: DARK_TEXT,
-    marginBottom: 6,
-  },
-  modalHint: {
-    fontSize: 13,
-    color: GRAY_TEXT,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  modalInput: {
-    width: '100%',
-    borderWidth: 1.5,
-    borderColor: '#C8E6C9',
-    borderRadius: 14,
-    height: 52,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    color: DARK_TEXT,
-    backgroundColor: '#FAFFF9',
-    marginBottom: 8,
-  },
-  modalError: {
-    fontSize: 12,
-    color: '#E53935',
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  modalBtns: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-    width: '100%',
-  },
-  modalCancelBtn: {
-    flex: 1,
-    height: 50,
-    borderWidth: 1.5,
-    borderColor: GREEN,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalCancelText: { color: GREEN, fontWeight: '700', fontSize: 15 },
-  modalGoBtn: {
-    flex: 1,
-    height: 50,
-    backgroundColor: GREEN,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: GREEN,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 4,
-  },
-  modalGoText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });
