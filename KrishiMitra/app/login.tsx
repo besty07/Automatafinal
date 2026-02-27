@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import LangPicker from '@/components/lang-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -19,6 +21,7 @@ const GRAY_TEXT = '#555';
 const BORDER = '#C8E6C9';
 
 export default function LoginScreen() {
+  const { t } = useLanguage();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -39,26 +42,31 @@ export default function LoginScreen() {
           <MaterialIcons name="arrow-back" size={24} color={GREEN} />
         </TouchableOpacity>
 
+        {/* Lang picker top-right */}
+        <View style={styles.langRow}>
+          <LangPicker />
+        </View>
+
         {/* Logo */}
         <View style={styles.hero}>
           <View style={styles.logoCircle}>
             <MaterialIcons name="trending-up" size={38} color="#fff" />
           </View>
           <Text style={styles.appTitle}>Krishi-Mitra</Text>
-          <Text style={styles.appSubtitle}>Welcome back, Farmer!</Text>
+          <Text style={styles.appSubtitle}>{t.welcomeBack}</Text>
         </View>
 
         {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Login to your account</Text>
+          <Text style={styles.cardTitle}>{t.loginToAccount}</Text>
 
           {/* Phone / Email */}
-          <Text style={styles.label}>Phone / Email</Text>
+          <Text style={styles.label}>{t.phoneEmail}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="phone" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Enter phone or email"
+              placeholder={t.phoneEmailPlaceholder}
               placeholderTextColor="#aaa"
               keyboardType="default"
               value={phone}
@@ -68,12 +76,12 @@ export default function LoginScreen() {
           </View>
 
           {/* Password */}
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{t.password}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="lock" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { flex: 1 }]}
-              placeholder="Enter password"
+              placeholder={t.passwordPlaceholder}
               placeholderTextColor="#aaa"
               secureTextEntry={!showPass}
               value={password}
@@ -90,34 +98,34 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity style={styles.forgotWrap}>
-            <Text style={styles.forgotText}>Forgot Password?</Text>
+            <Text style={styles.forgotText}>{t.forgotPassword}</Text>
           </TouchableOpacity>
 
           {/* Login btn */}
           <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin} activeOpacity={0.85}>
-            <Text style={styles.primaryBtnText}>Login</Text>
+            <Text style={styles.primaryBtnText}>{t.loginBtn}</Text>
             <MaterialIcons name="arrow-forward" size={20} color="#fff" />
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.dividerRow}>
             <View style={styles.divider} />
-            <Text style={styles.dividerText}>OR</Text>
+            <Text style={styles.dividerText}>{t.orDivider}</Text>
             <View style={styles.divider} />
           </View>
 
           {/* Guest option */}
           <TouchableOpacity style={styles.guestBtn} onPress={() => router.replace('/(home)' as any)}>
             <MaterialIcons name="person-outline" size={18} color={GREEN} />
-            <Text style={styles.guestText}>Continue as Guest</Text>
+            <Text style={styles.guestText}>{t.continueGuest}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Sign up redirect */}
         <View style={styles.bottomRow}>
-          <Text style={styles.bottomText}>Don't have an account? </Text>
+          <Text style={styles.bottomText}>{t.noAccount}</Text>
           <TouchableOpacity onPress={() => router.replace('/signup' as any)}>
-            <Text style={styles.linkText}>Sign Up</Text>
+            <Text style={styles.linkText}>{t.signUp}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -128,6 +136,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: LIGHT_GREEN_BG },
   scroll: { paddingHorizontal: 20, paddingTop: 52, paddingBottom: 32 },
+  langRow: { alignItems: 'flex-end', marginBottom: 8 },
 
   backBtn: {
     width: 40,

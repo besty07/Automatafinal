@@ -1,6 +1,8 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import LangPicker from '@/components/lang-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -47,12 +49,16 @@ const MOCK_HISTORY = [
 ];
 
 export default function HistoryScreen() {
+  const { t } = useLanguage();
   return (
     <View style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Previous History</Text>
-        <Text style={styles.headerSub}>Your hedging activity</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>{t.historyTitle}</Text>
+          <LangPicker />
+        </View>
+        <Text style={styles.headerSub}>{t.historySubtitle}</Text>
       </View>
 
       <ScrollView
@@ -93,12 +99,12 @@ export default function HistoryScreen() {
 
               <View style={styles.cardBottom}>
                 <View style={styles.stat}>
-                  <Text style={styles.statLabel}>Locked Price</Text>
+                  <Text style={styles.statLabel}>{t.lockedPrice}</Text>
                   <Text style={styles.statValue}>{item.lockedPrice}</Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.stat}>
-                  <Text style={styles.statLabel}>P&amp;L</Text>
+                  <Text style={styles.statLabel}>{t.pandl}</Text>
                   <Text
                     style={[
                       styles.statValue,
@@ -127,6 +133,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     paddingHorizontal: 20,
   },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTitle: { fontSize: 24, fontWeight: '800', color: GREEN },
   headerSub: { fontSize: 13, color: GRAY_TEXT, marginTop: 2 },
 
