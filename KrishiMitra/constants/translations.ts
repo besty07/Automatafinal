@@ -83,9 +83,10 @@ export const translations = {
     startHedging: 'Start Hedging',
     tileGovSchemes: 'Gov Schemes',
     tileWeather: 'Weather',
-    tileCropSeed: 'Crop & Seed\nSelector',
-    tileFertilizer: 'Fertilizer\nSelection',
+    tileCropSeed: 'Resources\nNear You',
+    tileFertilizer: 'Fertilizer,Crop\nSuggestion',
     tileHistorical: 'Historical Data',
+    tileReminders: 'Add Reminders',
 
     // History page
     historyTitle: 'Previous History',
@@ -315,6 +316,7 @@ export const translations = {
     tileCropSeed: 'पीक व बियाणे\nनिवडकर्ता',
     tileFertilizer: 'खत\nनिवड',
     tileHistorical: 'ऐतिहासिक डेटा',
+    tileReminders: 'स्मरणपत्रिका जोडा',
 
     historyTitle: 'मागील इतिहास',
     historySubtitle: 'तुमची हेजिंग क्रिया',

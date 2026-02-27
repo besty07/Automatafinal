@@ -43,6 +43,8 @@ export default function LoggedInHome() {
     { icon: 'cloud' as const, label: t.tileWeather },
     { icon: 'eco' as const, label: t.tileCropSeed },
     { icon: 'spa' as const, label: t.tileFertilizer },
+    { icon: 'bar-chart' as const, label: t.tileHistorical },
+    { icon: 'alarm-add' as const, label: t.tileReminders },
   ];
 
   // ── Ticker animation ──
@@ -136,7 +138,7 @@ export default function LoggedInHome() {
           <MaterialIcons name="arrow-forward" size={20} color="#fff" />
         </TouchableOpacity>
 
-        {/* Feature grid */}
+        {/* Feature grid – all 6 tiles in 2-column layout */}
         <View style={styles.grid}>
           {FEATURE_TILES.map((tile, i) => (
             <TouchableOpacity key={i} style={styles.tile} activeOpacity={0.8}>
@@ -146,16 +148,6 @@ export default function LoggedInHome() {
               <Text style={styles.tileLabel}>{tile.label}</Text>
             </TouchableOpacity>
           ))}
-        </View>
-
-        {/* Historical Data – centered single tile */}
-        <View style={styles.gridSingle}>
-          <TouchableOpacity style={styles.tile} activeOpacity={0.8}>
-            <View style={styles.tileIconCircle}>
-              <MaterialIcons name="bar-chart" size={28} color="#fff" />
-            </View>
-            <Text style={styles.tileLabel}>{t.tileHistorical}</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={{ height: 16 }} />
