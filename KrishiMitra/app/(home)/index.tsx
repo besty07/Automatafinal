@@ -75,9 +75,6 @@ export default function LoggedInHome() {
           <Text style={styles.headerTitle}>Krishi-Mitra</Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIcon}>
-            <MaterialIcons name="wb-sunny" size={20} color={DARK_TEXT} />
-          </TouchableOpacity>
           <LangPicker />
           <TouchableOpacity style={styles.headerIcon}>
             <MaterialIcons name="person" size={20} color={DARK_TEXT} />
@@ -154,6 +151,9 @@ export default function LoggedInHome() {
                 } else if (i === 4) {
                   router.push('/(home)/historical' as any);
                 }
+                if (i === 0) router.push('/(home)/gov-schemes' as any);
+                if (i === 2) router.push('/(home)/resources' as any);
+                if (i === 5) router.push('/(home)/reminders' as any);
               }}
             >
               <View style={styles.tileIconCircle}>
