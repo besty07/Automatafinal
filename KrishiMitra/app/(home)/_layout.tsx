@@ -34,8 +34,11 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           );
         }
 
-        const iconName = index === 0 ? ('home' as const) : ('history' as const);
-        const label = index === 0 ? 'Home' : 'Previous History';
+        // Only render Home (index 0) and History (index 2); skip all others
+        if (route.name !== 'index' && route.name !== 'history') return null;
+
+        const iconName = route.name === 'index' ? ('home' as const) : ('history' as const);
+        const label = route.name === 'index' ? 'Home' : 'Previous History';
         const color = isFocused ? GREEN : '#888';
 
         return (
@@ -63,6 +66,7 @@ export default function HomeLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="mic" />
       <Tabs.Screen name="history" />
+      <Tabs.Screen name="hedging" options={{ href: null }} />
     </Tabs>
   );
 }
