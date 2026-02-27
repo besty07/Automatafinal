@@ -136,6 +136,7 @@ export default function LoggedInHome() {
         </TouchableOpacity>
 
         {/* Feature grid – all 6 tiles in 2-column layout */}
+        {/* Feature grid – all 6 tiles in 2-column layout */}
         <View style={styles.grid}>
           {FEATURE_TILES.map((tile, i) => (
             <TouchableOpacity
@@ -147,6 +148,9 @@ export default function LoggedInHome() {
                 // moment; others can be added later.
                 if (i === 0) {
                   router.push('/(home)/gov-schemes' as any);
+                } else if (i === 1) {
+                  // This connects the Weather tile (index 1) to your new weather.tsx page
+                  router.push('/(home)/weather' as any);
                 } else if (i === 4) {
                   router.push('/(home)/historical' as any);
                 }
