@@ -143,8 +143,12 @@ export default function LoggedInHome() {
               style={styles.tile}
               activeOpacity={0.8}
               onPress={() => {
+                // only a couple of tiles have screens implemented at the
+                // moment; others can be added later.
                 if (i === 0) {
                   router.push('/(home)/gov-schemes' as any);
+                } else if (i === 4) {
+                  router.push('/(home)/historical' as any);
                 }
               }}
             >

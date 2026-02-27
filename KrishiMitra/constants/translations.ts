@@ -87,6 +87,10 @@ export const translations = {
     tileFertilizer: 'Fertilizer,Crop\nSuggestion',
     tileHistorical: 'Historical Data',
     tileReminders: 'Add Reminders',
+    // historical page
+    historicalSelectCrop: 'Select Crop',
+    historicalPriceHeader: 'Price History',
+    selectColumns: 'Select columns',
 
     // History page
     historyTitle: 'Previous History',
@@ -202,6 +206,10 @@ export const translations = {
     tileCropSeed: 'फसल और बीज\nचयनकर्ता',
     tileFertilizer: 'उर्वरक\nचयन',
     tileHistorical: 'ऐतिहासिक डेटा',
+    tileReminders: 'रिमाइंडर जोड़ें',
+    historicalSelectCrop: 'फसल चुनें',
+    historicalPriceHeader: 'मूल्य इतिहास',
+    selectColumns: 'स्तंभ चुनें',
 
     historyTitle: 'पिछला इतिहास',
     historySubtitle: 'आपकी हेजिंग गतिविधि',
@@ -317,6 +325,9 @@ export const translations = {
     tileFertilizer: 'खत\nनिवड',
     tileHistorical: 'ऐतिहासिक डेटा',
     tileReminders: 'स्मरणपत्रिका जोडा',
+    historicalSelectCrop: 'पीक निवडा',
+    historicalPriceHeader: 'किंमत इतिहास',
+    selectColumns: 'स्तंभ निवडा',
 
     historyTitle: 'मागील इतिहास',
     historySubtitle: 'तुमची हेजिंग क्रिया',
