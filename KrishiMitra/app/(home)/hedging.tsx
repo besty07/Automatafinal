@@ -21,6 +21,13 @@ const BORDER = '#C8E6C9';
 
 const OILSEEDS = ['Soybean', 'Groundnut', 'Sesame', 'Castor', 'Sunflower', 'Mustard'];
 
+const formatDate = (text: string): string => {
+  const digits = text.replace(/\D/g, '');
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+};
+
 export default function HedgingScreen() {
   const [oilseed, setOilseed] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -174,11 +181,11 @@ export default function HedgingScreen() {
             <MaterialIcons name="calendar-today" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="DD / MM / YYYY"
+              placeholder="DD/MM/YYYY"
               placeholderTextColor="#aaa"
               keyboardType="numeric"
               value={harvestDate}
-              onChangeText={setHarvestDate}
+              onChangeText={(text) => setHarvestDate(formatDate(text))}
               maxLength={10}
             />
           </View>
@@ -204,11 +211,11 @@ export default function HedgingScreen() {
             <MaterialIcons name="local-shipping" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="DD / MM / YYYY"
+              placeholder="DD/MM/YYYY"
               placeholderTextColor="#aaa"
               keyboardType="numeric"
               value={transportDate}
-              onChangeText={setTransportDate}
+              onChangeText={(text) => setTransportDate(formatDate(text))}
               maxLength={10}
             />
           </View>

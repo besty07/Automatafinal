@@ -78,9 +78,6 @@ export default function LoggedInHome() {
           <TouchableOpacity style={styles.headerIcon}>
             <MaterialIcons name="wb-sunny" size={20} color={DARK_TEXT} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIcon}>
-            <MaterialIcons name="language" size={20} color={DARK_TEXT} />
-          </TouchableOpacity>
           <LangPicker />
           <TouchableOpacity style={styles.headerIcon}>
             <MaterialIcons name="person" size={20} color={DARK_TEXT} />

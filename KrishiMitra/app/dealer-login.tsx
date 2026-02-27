@@ -28,7 +28,7 @@ export default function DealerLoginScreen() {
 
   const handleLogin = () => {
     // TODO: dealer authentication
-    router.replace('/(home)' as any);
+    router.replace('/(dealer)' as any);
   };
 
   return (
