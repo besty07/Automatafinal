@@ -1,9 +1,15 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import React from 'react';
+import { router } from 'expo-router';
+import React, { useRef, useState } from 'react';
 import {
+  Animated,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -16,7 +22,60 @@ const GRAY_TEXT = '#555';
 const DARK_TEXT = '#1B2B1C';
 const EXAMPLE_BG = '#F0F0F0';
 
+function processCommand(text: string) {
+  const cmd = text.toLowerCase().trim();
+  if (cmd.includes('login') || cmd.includes('log in')) {
+    router.push('/login' as any);
+    return true;
+  }
+  if (cmd.includes('sign up') || cmd.includes('signup') || cmd.includes('register')) {
+    router.push('/signup' as any);
+    return true;
+  }
+  return false;
+}
+
 export default function HomeScreen() {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cmdText, setCmdText] = useState('');
+  const [error, setError] = useState('');
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  const startPulse = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.18, duration: 600, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      ])
+    ).start();
+  };
+  const stopPulse = () => {
+    pulseAnim.stopAnimation();
+    pulseAnim.setValue(1);
+  };
+
+  const openVoiceModal = () => {
+    setCmdText('');
+    setError('');
+    setModalVisible(true);
+    startPulse();
+  };
+
+  const handleSubmit = () => {
+    const handled = processCommand(cmdText);
+    if (handled) {
+      setModalVisible(false);
+      stopPulse();
+    } else {
+      setError('Command not recognised. Try: "login" or "sign up"');
+    }
+  };
+
+  const handleClose = () => {
+    setModalVisible(false);
+    stopPulse();
+  };
+
   return (
     <View style={styles.root}>
       {/* Scrollable content */}
@@ -32,10 +91,10 @@ export default function HomeScreen() {
             <Text style={styles.langText}>EN</Text>
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.signUpBtn}>
+            <TouchableOpacity style={styles.signUpBtn} onPress={() => router.push('/signup' as any)}>
               <Text style={styles.signUpText}>Sign Up</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.loginBtn}>
+            <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/login' as any)}>
               <Text style={styles.loginText}>Login</Text>
             </TouchableOpacity>
           </View>
@@ -104,11 +163,60 @@ export default function HomeScreen() {
 
       {/* ── Floating "Tap to Speak" button ── */}
       <View style={styles.fabContainer}>
-        <TouchableOpacity style={styles.fab}>
-          <MaterialIcons name="mic" size={20} color="#fff" />
-          <Text style={styles.fabText}>Tap to Speak</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <TouchableOpacity style={styles.fab} onPress={openVoiceModal} activeOpacity={0.85}>
+            <MaterialIcons name="mic" size={20} color="#fff" />
+            <Text style={styles.fabText}>Tap to Speak</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
+
+      {/* ── Voice Command Modal ── */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={handleClose}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalCard}>
+            {/* Animated mic icon */}
+            <Animated.View style={[styles.micCircle, { transform: [{ scale: pulseAnim }] }]}>
+              <MaterialIcons name="mic" size={32} color="#fff" />
+            </Animated.View>
+
+            <Text style={styles.modalTitle}>Voice Command</Text>
+            <Text style={styles.modalHint}>
+              Type your command below{`\n`}e.g.  "login"  or  "sign up"
+            </Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Type command here…"
+              placeholderTextColor="#aaa"
+              value={cmdText}
+              onChangeText={(t) => { setCmdText(t); setError(''); }}
+              onSubmitEditing={handleSubmit}
+              autoFocus
+              autoCapitalize="none"
+            />
+
+            {error ? <Text style={styles.modalError}>{error}</Text> : null}
+
+            <View style={styles.modalBtns}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={handleClose}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalGoBtn} onPress={handleSubmit}>
+                <Text style={styles.modalGoText}>Go</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -373,4 +481,94 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+
+  /* Voice Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 28,
+    alignItems: 'center',
+    paddingBottom: 36,
+  },
+  micCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: GREEN,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: DARK_TEXT,
+    marginBottom: 6,
+  },
+  modalHint: {
+    fontSize: 13,
+    color: GRAY_TEXT,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  modalInput: {
+    width: '100%',
+    borderWidth: 1.5,
+    borderColor: '#C8E6C9',
+    borderRadius: 14,
+    height: 52,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: DARK_TEXT,
+    backgroundColor: '#FAFFF9',
+    marginBottom: 8,
+  },
+  modalError: {
+    fontSize: 12,
+    color: '#E53935',
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  modalBtns: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: 50,
+    borderWidth: 1.5,
+    borderColor: GREEN,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelText: { color: GREEN, fontWeight: '700', fontSize: 15 },
+  modalGoBtn: {
+    flex: 1,
+    height: 50,
+    backgroundColor: GREEN,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+  modalGoText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });
