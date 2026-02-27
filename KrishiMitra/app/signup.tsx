@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from './firebaseConfig'; // Ensure this path matches your file structure
+import { auth, db } from './firebaseConfig'; 
 
 import LangPicker from '@/components/lang-picker';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -30,7 +30,7 @@ export default function SignupScreen() {
   const { t } = useLanguage();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState(''); // Added Email state
+  const [aadhar, setAadhar] = useState(''); // Added Aadhaar state
   const [state, setState] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -38,8 +38,19 @@ export default function SignupScreen() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSignup = async () => {
-    if (!email || !password || !name) {
+    // 1. Check if all fields are filled
+    if (!phone || !password || !name || !aadhar || !state) {
       Alert.alert("Error", "Please fill out all required fields.");
+      return;
+    }
+
+    // 2. Format validation
+    if (phone.length !== 10) {
+      Alert.alert("Invalid Input", "Phone number must be exactly 10 digits.");
+      return;
+    }
+    if (aadhar.length !== 12) {
+      Alert.alert("Invalid Input", "Aadhaar number must be exactly 12 digits.");
       return;
     }
 
@@ -48,16 +59,19 @@ export default function SignupScreen() {
       return;
     }
 
+    // 3. Create a dummy email behind the scenes for Firebase Auth
+    const authEmail = `${phone}@krishimitra.com`;
+
     try {
-      // 1. Create the user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // 4. Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, authEmail, password);
       const user = userCredential.user;
 
-      // 2. Save additional user details in Firestore Database
+      // 5. Save additional user details in Firestore Database
       await setDoc(doc(db, 'users', user.uid), {
         name: name,
         phone: phone,
-        email: email,
+        aadhar: aadhar,
         state: state,
         createdAt: new Date(),
       });
@@ -76,17 +90,14 @@ export default function SignupScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Back */}
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color={GREEN} />
         </TouchableOpacity>
 
-        {/* Lang picker */}
         <View style={styles.langRow}>
           <LangPicker />
         </View>
 
-        {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.logoCircle}>
             <MaterialIcons name="trending-up" size={38} color="#fff" />
@@ -95,11 +106,9 @@ export default function SignupScreen() {
           <Text style={styles.appSubtitle}>{t.joinFarmers}</Text>
         </View>
 
-        {/* Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t.createAccount}</Text>
 
-          {/* Full Name */}
           <InputField
             label={t.fullName}
             icon="person"
@@ -108,7 +117,6 @@ export default function SignupScreen() {
             onChangeText={setName}
           />
 
-          {/* Phone */}
           <InputField
             label={t.phoneNumber}
             icon="phone"
@@ -116,19 +124,20 @@ export default function SignupScreen() {
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
+            maxLength={10} // Limits input length visually
           />
 
-          {/* Email */}
+          {/* New Aadhaar Input Field */}
           <InputField
-            label="Email Address"
-            icon="email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            label={t.aadharNumber || "Aadhaar Number"} // Falls back to English if translation missing
+            icon="credit-card"
+            placeholder="Enter 12-digit Aadhaar"
+            value={aadhar}
+            onChangeText={setAadhar}
+            keyboardType="numeric"
+            maxLength={12} // Limits input length visually
           />
 
-          {/* State */}
           <InputField
             label={t.stateDistrict}
             icon="location-on"
@@ -137,7 +146,6 @@ export default function SignupScreen() {
             onChangeText={setState}
           />
 
-          {/* Password */}
           <Text style={styles.label}>{t.createPassword}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="lock" size={20} color={GREEN} style={styles.inputIcon} />
@@ -151,15 +159,10 @@ export default function SignupScreen() {
               autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowPass(!showPass)} style={styles.eyeBtn}>
-              <MaterialIcons
-                name={showPass ? 'visibility' : 'visibility-off'}
-                size={20}
-                color="#888"
-              />
+              <MaterialIcons name={showPass ? 'visibility' : 'visibility-off'} size={20} color="#888" />
             </TouchableOpacity>
           </View>
 
-          {/* Confirm Password */}
           <Text style={styles.label}>{t.confirmPassword}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="lock-outline" size={20} color={GREEN} style={styles.inputIcon} />
@@ -173,33 +176,20 @@ export default function SignupScreen() {
               autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)} style={styles.eyeBtn}>
-              <MaterialIcons
-                name={showConfirm ? 'visibility' : 'visibility-off'}
-                size={20}
-                color="#888"
-              />
+              <MaterialIcons name={showConfirm ? 'visibility' : 'visibility-off'} size={20} color="#888" />
             </TouchableOpacity>
           </View>
 
-          {/* Sign Up btn */}
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={handleSignup}
-            activeOpacity={0.85}
-          >
+          <TouchableOpacity style={styles.primaryBtn} onPress={handleSignup} activeOpacity={0.85}>
             <Text style={styles.primaryBtnText}>{t.createAccountBtn}</Text>
             <MaterialIcons name="arrow-forward" size={20} color="#fff" />
           </TouchableOpacity>
 
-          {/* Terms */}
           <Text style={styles.terms}>
-            {t.termsText}{' '}
-            <Text style={styles.termsLink}>{t.termsService}</Text> {t.and}{' '}
-            <Text style={styles.termsLink}>{t.privacyPolicy}</Text>
+            {t.termsText} <Text style={styles.termsLink}>{t.termsService}</Text> {t.and} <Text style={styles.termsLink}>{t.privacyPolicy}</Text>
           </Text>
         </View>
 
-        {/* Login redirect */}
         <View style={styles.bottomRow}>
           <Text style={styles.bottomText}>{t.haveAccount} </Text>
           <TouchableOpacity onPress={() => router.replace('/login' as any)}>
@@ -211,21 +201,7 @@ export default function SignupScreen() {
   );
 }
 
-function InputField({
-  label,
-  icon,
-  placeholder,
-  value,
-  onChangeText,
-  keyboardType = 'default',
-}: {
-  label: string;
-  icon: React.ComponentProps<typeof MaterialIcons>['name'];
-  placeholder: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  keyboardType?: 'default' | 'phone-pad' | 'email-address';
-}) {
+function InputField({ label, icon, placeholder, value, onChangeText, keyboardType = 'default', maxLength }: any) {
   return (
     <>
       <Text style={styles.label}>{label}</Text>
@@ -238,6 +214,7 @@ function InputField({
           value={value}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
+          maxLength={maxLength}
           autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
         />
       </View>
@@ -249,95 +226,22 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: LIGHT_GREEN_BG },
   langRow: { alignItems: 'flex-end', marginBottom: 8 },
   scroll: { paddingHorizontal: 20, paddingTop: 52, paddingBottom: 32 },
-
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
   hero: { alignItems: 'center', marginBottom: 24 },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: GREEN,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 5,
-    elevation: 5,
-  },
+  logoCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 5, elevation: 5 },
   appTitle: { fontSize: 26, fontWeight: '800', color: GREEN, marginBottom: 4 },
   appSubtitle: { fontSize: 13, color: GRAY_TEXT },
-
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    marginBottom: 20,
-  },
+  card: { backgroundColor: '#fff', borderRadius: 20, padding: 22, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3, marginBottom: 20 },
   cardTitle: { fontSize: 18, fontWeight: '700', color: DARK_TEXT, marginBottom: 20 },
-
   label: { fontSize: 13, fontWeight: '600', color: DARK_TEXT, marginBottom: 6 },
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: BORDER,
-    borderRadius: 12,
-    backgroundColor: '#FAFFF9',
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    height: 50,
-  },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: BORDER, borderRadius: 12, backgroundColor: '#FAFFF9', paddingHorizontal: 12, marginBottom: 16, height: 50 },
   inputIcon: { marginRight: 8 },
   input: { flex: 1, fontSize: 14, color: DARK_TEXT },
   eyeBtn: { padding: 4 },
-
-  primaryBtn: {
-    backgroundColor: GREEN,
-    borderRadius: 14,
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 4,
-    shadowColor: GREEN,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
-    elevation: 4,
-  },
+  primaryBtn: { backgroundColor: GREEN, borderRadius: 14, height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4, shadowColor: GREEN, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.35, shadowRadius: 5, elevation: 4 },
   primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  terms: {
-    fontSize: 11.5,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 14,
-    lineHeight: 17,
-  },
+  terms: { fontSize: 11.5, color: '#999', textAlign: 'center', marginTop: 14, lineHeight: 17 },
   termsLink: { color: GREEN, fontWeight: '600' },
-
   bottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   bottomText: { fontSize: 14, color: GRAY_TEXT },
   linkText: { fontSize: 14, color: GREEN, fontWeight: '700' },
