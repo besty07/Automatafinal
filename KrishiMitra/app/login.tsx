@@ -1,6 +1,9 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { Alert } from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebaseConfig'; // Ensure this path matches your file structure
 import {
   KeyboardAvoidingView,
   Platform,
@@ -21,14 +24,29 @@ const GRAY_TEXT = '#555';
 const BORDER = '#C8E6C9';
 
 export default function LoginScreen() {
+
+  const [email, setEmail] = useState(''); // Changed from 'phone' to 'email' for Firebase compatibility
   const { t } = useLanguage();
-  const [phone, setPhone] = useState('');
+//   const [phone, setPhone] = useState('');
+
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
 
-  const handleLogin = () => {
-    // Navigate to post-login home (no backend yet)
-    router.replace('/(home)' as any);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
+    }
+
+    try {
+      // Authenticate with Firebase
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // Navigate to post-login home
+      router.replace('/(home)' as any);
+    } catch (error: any) {
+      Alert.alert("Login Failed", error.message);
+    }
   };
 
   return (
@@ -60,17 +78,22 @@ export default function LoginScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t.loginToAccount}</Text>
 
-          {/* Phone / Email */}
+
+          {/* Email */}
           <Text style={styles.label}>{t.phoneEmail}</Text>
+
+
           <View style={styles.inputWrap}>
-            <MaterialIcons name="phone" size={20} color={GREEN} style={styles.inputIcon} />
+            <MaterialIcons name="email" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
+
               placeholder={t.phoneEmailPlaceholder}
+
               placeholderTextColor="#aaa"
-              keyboardType="default"
-              value={phone}
-              onChangeText={setPhone}
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
               autoCapitalize="none"
             />
           </View>

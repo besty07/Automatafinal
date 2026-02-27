@@ -1,6 +1,12 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+
+import { Alert } from 'react-native';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from './firebaseConfig'; // Ensure this path matches your file structure
+
 import LangPicker from '@/components/lang-picker';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
@@ -24,15 +30,44 @@ export default function SignupScreen() {
   const { t } = useLanguage();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState(''); // Added Email state
   const [state, setState] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleSignup = () => {
-    // After signup, go to login (no backend yet)
-    router.replace('/login' as any);
+  const handleSignup = async () => {
+    if (!email || !password || !name) {
+      Alert.alert("Error", "Please fill out all required fields.");
+      return;
+    }
+
+    if (password !== confirm) {
+      Alert.alert("Error", "Passwords do not match!");
+      return;
+    }
+
+    try {
+      // 1. Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. Save additional user details in Firestore Database
+      await setDoc(doc(db, 'users', user.uid), {
+        name: name,
+        phone: phone,
+        email: email,
+        state: state,
+        createdAt: new Date(),
+      });
+
+      Alert.alert("Success", "Account created successfully!");
+      router.replace('/login' as any);
+      
+    } catch (error: any) {
+      Alert.alert("Signup Failed", error.message);
+    }
   };
 
   return (
@@ -81,6 +116,16 @@ export default function SignupScreen() {
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
+          />
+
+          {/* Email */}
+          <InputField
+            label="Email Address"
+            icon="email"
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
           />
 
           {/* State */}
@@ -193,6 +238,7 @@ function InputField({
           value={value}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
+          autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
         />
       </View>
     </>
