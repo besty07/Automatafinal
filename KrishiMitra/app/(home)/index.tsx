@@ -143,9 +143,8 @@ export default function LoggedInHome() {
               style={styles.tile}
               activeOpacity={0.8}
               onPress={() => {
-                if (i === 0) {
-                  router.push('/(home)/gov-schemes' as any);
-                }
+                if (i === 0) router.push('/(home)/gov-schemes' as any);
+                if (i === 5) router.push('/(home)/reminders' as any);
               }}
             >
               <View style={styles.tileIconCircle}>

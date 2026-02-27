@@ -1,9 +1,12 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useState, useRef } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -14,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { auth, db } from '../firebaseConfig';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -43,6 +47,7 @@ export default function HedgingScreen() {
   const [harvestDate, setHarvestDate] = useState('');
   const [pricePerKg, setPricePerKg] = useState('');
   const [transportDate, setTransportDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleDetectLocation = async () => {
     setMapModal(true);
@@ -62,8 +67,42 @@ export default function HedgingScreen() {
     } catch {}
   };
 
-  const handleSubmit = () => {
-    // To be wired with backend later
+  const handleSubmit = async () => {
+    if (!oilseed)        { Alert.alert('Missing field', 'Please select an oilseed.'); return; }
+    if (!location.trim()) { Alert.alert('Missing field', 'Please enter your location.'); return; }
+    if (!quantity.trim()) { Alert.alert('Missing field', 'Please enter quantity.'); return; }
+    if (!harvestDate.trim()) { Alert.alert('Missing field', 'Please enter harvest date.'); return; }
+    if (!pricePerKg.trim()) { Alert.alert('Missing field', 'Please enter price per kg.'); return; }
+    if (!transportDate.trim()) { Alert.alert('Missing field', 'Please enter transport date.'); return; }
+
+    const user = auth.currentUser;
+    const farmerName = user?.displayName ?? user?.email ?? 'Farmer';
+
+    setSubmitting(true);
+    try {
+      await addDoc(collection(db, 'deals'), {
+        farmerName,
+        farmerId: user?.uid ?? null,
+        location: location.trim(),
+        crop: oilseed,
+        quantity: `${quantity.trim()} kg`,
+        askPrice: `₹${pricePerKg.trim()}/kg`,
+        harvestDate: harvestDate.trim(),
+        transportDate: transportDate.trim(),
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        status: 'New',
+        createdAt: serverTimestamp(),
+      });
+      Alert.alert(
+        'Deal Created!',
+        'Your deal has been submitted and is now visible to dealers.',
+        [{ text: 'OK', onPress: () => router.back() }],
+      );
+    } catch (e) {
+      Alert.alert('Error', 'Failed to submit deal. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -306,9 +345,14 @@ export default function HedgingScreen() {
         </View>
 
         {/* ── Submit button ── */}
-        <TouchableOpacity style={styles.primaryBtn} onPress={handleSubmit} activeOpacity={0.85}>
-          <MaterialIcons name="lock" size={20} color="#fff" />
-          <Text style={styles.primaryBtnText}>Lock My Price</Text>
+        <TouchableOpacity style={styles.primaryBtn} onPress={handleSubmit} activeOpacity={0.85} disabled={submitting}>
+          {submitting
+            ? <ActivityIndicator size="small" color="#fff" />
+            : <>
+                <MaterialIcons name="lock" size={20} color="#fff" />
+                <Text style={styles.primaryBtnText}>Lock My Price</Text>
+              </>
+          }
         </TouchableOpacity>
 
         <View style={{ height: 20 }} />
