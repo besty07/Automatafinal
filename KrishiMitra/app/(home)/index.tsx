@@ -139,7 +139,16 @@ export default function LoggedInHome() {
         {/* Feature grid */}
         <View style={styles.grid}>
           {FEATURE_TILES.map((tile, i) => (
-            <TouchableOpacity key={i} style={styles.tile} activeOpacity={0.8}>
+            <TouchableOpacity
+              key={i}
+              style={styles.tile}
+              activeOpacity={0.8}
+              onPress={() => {
+                if (i === 0) {
+                  router.push('/(home)/gov-schemes' as any);
+                }
+              }}
+            >
               <View style={styles.tileIconCircle}>
                 <MaterialIcons name={tile.icon} size={28} color="#fff" />
               </View>
