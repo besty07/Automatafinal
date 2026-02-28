@@ -55,6 +55,8 @@ export default function DealerDashboard() {
   const [deals,        setDeals]        = useState<any[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [seeding,      setSeeding]      = useState(false);
+  const [confirmDeal,  setConfirmDeal]  = useState<any | null>(null);
+  const [accepting,    setAccepting]    = useState(false);
 
   // ── Real-time listener on the 'deals' Firestore collection ────────────────
   useEffect(() => {
@@ -85,22 +87,43 @@ export default function DealerDashboard() {
     return () => unsub();
   }, []);
 
-  // ── Accept a deal ─────────────────────────────────────────────────────────
+  // ── Accept a deal (called after confirmation) ───────────────────────────
   const handleAccept = async (deal: any) => {
-    const uid = auth.currentUser?.uid;
+    const user = auth.currentUser;
+    const uid  = user?.uid;
     if (!uid) { Alert.alert('Error', 'Not logged in.'); return; }
+    const dealerName = user?.displayName ?? user?.email ?? 'Dealer';
+    setAccepting(true);
     try {
+      const acceptedAt = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
       await updateDoc(doc(db, 'deals', deal.id), {
-        status: 'Accepted', acceptedBy: uid, acceptedAt: serverTimestamp(),
+        status: 'Accepted',
+        acceptedBy: uid,
+        dealerName,
+        acceptedAt: serverTimestamp(),
+        acceptedAtStr: acceptedAt,
       });
       await addDoc(collection(db, 'dealers', uid, 'history'), {
-        farmerName: deal.farmerName, location: deal.location ?? '',
-        crop: deal.crop, quantity: deal.quantity, finalPrice: deal.askPrice,
-        date: serverTimestamp(), status: 'Completed', dealId: deal.id,
+        farmerName:    deal.farmerName,
+        location:      deal.location ?? '',
+        crop:          deal.crop,
+        quantity:      deal.quantity,
+        finalPrice:    deal.askPrice,
+        harvestDate:   deal.harvestDate ?? '',
+        transportDate: deal.transportDate ?? '',
+        dealerName,
+        dealerUid:     uid,
+        date:          serverTimestamp(),
+        acceptedAtStr: acceptedAt,
+        status:        'Completed',
+        dealId:        deal.id,
       });
-      Alert.alert('Deal Accepted', 'Deal added to your history.');
+      setConfirmDeal(null);
+      Alert.alert('Deal Accepted', 'Agreement ready. Download it from Previous Deals.');
     } catch {
       Alert.alert('Error', 'Failed to accept deal. Try again.');
+    } finally {
+      setAccepting(false);
     }
   };
 
@@ -248,7 +271,7 @@ export default function DealerDashboard() {
                   <TouchableOpacity style={styles.rejectBtn} onPress={() => handleDecline(deal)}>
                     <Text style={styles.rejectText}>Decline</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.acceptBtn} onPress={() => handleAccept(deal)}>
+                  <TouchableOpacity style={styles.acceptBtn} onPress={() => setConfirmDeal(deal)}>
                     <Text style={styles.acceptText}>Accept Deal</Text>
                   </TouchableOpacity>
                 </View>
@@ -288,6 +311,74 @@ export default function DealerDashboard() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* ── Confirm Accept Modal ── */}
+      <Modal visible={!!confirmDeal} transparent animationType="slide" onRequestClose={() => !accepting && setConfirmDeal(null)}>
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmBox}>
+            {/* Header */}
+            <View style={styles.confirmHeader}>
+              <MaterialIcons name="handshake" size={24} color={BLUE} />
+              <Text style={styles.confirmTitle}>Confirm Deal Acceptance</Text>
+            </View>
+            <Text style={styles.confirmSubtitle}>Please review all details before accepting.</Text>
+
+            {/* Details grid */}
+            {confirmDeal && (
+              <View style={styles.confirmDetails}>
+                <ConfirmRow label="Farmer"     value={confirmDeal.farmerName} icon="person" />
+                <ConfirmRow label="Location"   value={confirmDeal.location}   icon="location-on" />
+                <ConfirmRow label="Crop"        value={confirmDeal.crop}       icon="grass" />
+                <ConfirmRow label="Quantity"   value={confirmDeal.quantity}   icon="inventory" />
+                <ConfirmRow label="Ask Price"  value={confirmDeal.askPrice}   icon="currency-rupee" highlight />
+                {confirmDeal.harvestDate   ? <ConfirmRow label="Harvest Date"    value={confirmDeal.harvestDate}   icon="calendar-today" /> : null}
+                {confirmDeal.transportDate ? <ConfirmRow label="Transport Date"  value={confirmDeal.transportDate} icon="local-shipping" /> : null}
+                <ConfirmRow label="Listed On" value={confirmDeal.date ?? '—'}   icon="event" />
+              </View>
+            )}
+
+            <Text style={styles.confirmNote}>
+              A downloadable PDF agreement will be generated after acceptance.
+            </Text>
+
+            {/* Actions */}
+            <View style={styles.confirmActions}>
+              <TouchableOpacity
+                style={styles.confirmCancelBtn}
+                onPress={() => setConfirmDeal(null)}
+                disabled={accepting}
+              >
+                <Text style={styles.confirmCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.confirmAcceptBtn}
+                onPress={() => confirmDeal && handleAccept(confirmDeal)}
+                disabled={accepting}
+                activeOpacity={0.85}
+              >
+                {accepting
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <>
+                      <MaterialIcons name="check-circle" size={18} color="#fff" />
+                      <Text style={styles.confirmAcceptText}>Yes, Accept Deal</Text>
+                    </>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+// ─── Confirm row sub-component ───────────────────────────────────────────────
+function ConfirmRow({ label, value, icon, highlight }: { label: string; value: string; icon: string; highlight?: boolean }) {
+  return (
+    <View style={styles.confirmRow}>
+      <MaterialIcons name={icon as any} size={16} color={BLUE} />
+      <Text style={styles.confirmRowLabel}>{label}</Text>
+      <Text style={[styles.confirmRowValue, highlight && styles.confirmRowHighlight]}>{value}</Text>
     </View>
   );
 }
@@ -377,4 +468,47 @@ const styles = StyleSheet.create({
   modalOption:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EAF2F8' },
   modalOptionText:  { fontSize: 14, color: DARK_TEXT },
   modalOptionActive:{ color: BLUE, fontWeight: '700' },
+
+  /* ── Confirm modal ── */
+  confirmOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  confirmBox: {
+    backgroundColor: '#fff', borderTopLeftRadius: 26, borderTopRightRadius: 26,
+    padding: 24, paddingBottom: 36,
+    shadowColor: '#000', shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.12, shadowRadius: 10, elevation: 10,
+  },
+  confirmHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
+  confirmTitle:  { fontSize: 18, fontWeight: '800', color: DARK_TEXT },
+  confirmSubtitle: { fontSize: 13, color: GRAY_TEXT, marginBottom: 16 },
+  confirmDetails: { marginBottom: 14 },
+  confirmNote: {
+    fontSize: 12, color: '#888', textAlign: 'center',
+    marginBottom: 18, fontStyle: 'italic',
+  },
+  confirmActions: { flexDirection: 'row', gap: 10 },
+  confirmCancelBtn: {
+    flex: 1, borderWidth: 1.5, borderColor: BLUE,
+    borderRadius: 12, height: 48,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  confirmCancelText: { fontSize: 14, fontWeight: '600', color: BLUE },
+  confirmAcceptBtn: {
+    flex: 2, backgroundColor: BLUE,
+    borderRadius: 12, height: 48,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+  },
+  confirmAcceptText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+
+  /* Confirm row */
+  confirmRow: {
+    flexDirection: 'row', alignItems: 'center',
+    gap: 10, paddingVertical: 8,
+    borderBottomWidth: 1, borderBottomColor: '#F0F4F8',
+  },
+  confirmRowLabel: { fontSize: 12, color: GRAY_TEXT, flex: 1 },
+  confirmRowValue: { fontSize: 14, fontWeight: '600', color: DARK_TEXT, textAlign: 'right', flex: 2 },
+  confirmRowHighlight: { color: BLUE, fontSize: 15, fontWeight: '800' },
 });
