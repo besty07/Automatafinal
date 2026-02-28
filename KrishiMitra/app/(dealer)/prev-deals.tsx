@@ -2,7 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LangPicker from '@/components/lang-picker';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, getDoc, getDocs, doc, where } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { downloadAgreementPdf } from '@/utils/generateAgreementPdf';
 
@@ -20,6 +20,7 @@ const formatDate = (ts: any): string => {
 export default function PrevDealsScreen() {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
@@ -37,6 +38,50 @@ export default function PrevDealsScreen() {
 
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const resolve = async () => {
+      const newMap: Record<string, string> = {};
+      for (const deal of history) {
+        try {
+          // Prefer farmerId if available
+          if (deal.farmerId) {
+            const ud = await getDoc(doc(db, 'users', deal.farmerId));
+            if (ud.exists()) {
+              const d = ud.data() as any;
+              newMap[deal.id] = d.name || deal.farmerName || deal.farmerId;
+              continue;
+            }
+          }
+
+          // Fallback: if farmerName looks like phone@krishimitra.com, lookup by phone
+          const fname = String(deal.farmerName ?? '');
+          if (fname.includes('@krishimitra.com')) {
+            const phone = fname.split('@')[0];
+            try {
+              const q = await getDocs(query(collection(db, 'users'), where('phone', '==', phone)));
+              if (!q.empty) {
+                const u = q.docs[0].data() as any;
+                newMap[deal.id] = u.name || fname;
+                continue;
+              }
+            } catch {
+              // ignore and fallback to raw name
+            }
+          }
+
+          // Default to whatever farmerName already contains
+          newMap[deal.id] = deal.farmerName ?? 'Farmer';
+        } catch (e) {
+          newMap[deal.id] = deal.farmerName ?? 'Farmer';
+        }
+      }
+      if (mounted) setResolvedNames((s) => ({ ...s, ...newMap }));
+    };
+    if (history.length) resolve();
+    return () => { mounted = false; };
+  }, [history]);
 
   return (
     <View style={styles.root}>
@@ -75,7 +120,7 @@ export default function PrevDealsScreen() {
                     <MaterialIcons name="person" size={22} color="#fff" />
                   </View>
                   <View style={styles.cardInfo}>
-                    <Text style={styles.farmerName}>{deal.farmerName}</Text>
+                    <Text style={styles.farmerName}>{resolvedNames[deal.id] ?? deal.farmerName}</Text>
                     <View style={styles.locationRow}>
                       <MaterialIcons name="location-on" size={12} color={GRAY_TEXT} />
                       <Text style={styles.locationText}>{deal.location}</Text>
@@ -114,20 +159,36 @@ export default function PrevDealsScreen() {
                     <TouchableOpacity
                       style={styles.downloadBtn}
                       activeOpacity={0.8}
-                      onPress={() => downloadAgreementPdf({
-                        dealId:         deal.dealId ?? deal.id,
-                        farmerName:     deal.farmerName,
-                        farmerLocation: deal.location,
-                        dealerName:     deal.dealerName ?? 'Dealer',
-                        dealerUid:      deal.dealerUid,
-                        crop:           deal.crop,
-                        quantity:       deal.quantity,
-                        askPrice:       deal.finalPrice,
-                        harvestDate:    deal.harvestDate,
-                        transportDate:  deal.transportDate,
-                        acceptedAt:     deal.acceptedAtStr,
-                        createdAt:      formatDate(deal.date),
-                      })}
+                      onPress={async () => {
+                        const farmerNameForPdf = resolvedNames[deal.id] ?? deal.farmerName;
+                        let dealerNameForPdf = deal.dealerName ?? 'Dealer';
+                        try {
+                          if (deal.dealerUid) {
+                            const dd = await getDoc(doc(db, 'dealers', deal.dealerUid));
+                            if (dd.exists()) {
+                              const ddata = dd.data() as any;
+                              dealerNameForPdf = ddata.name || dealerNameForPdf;
+                            }
+                          }
+                        } catch (e) {
+                          // ignore and fallback to existing dealerName
+                        }
+
+                        downloadAgreementPdf({
+                          dealId:         deal.dealId ?? deal.id,
+                          farmerName:     farmerNameForPdf,
+                          farmerLocation: deal.location,
+                          dealerName:     dealerNameForPdf,
+                          dealerUid:      deal.dealerUid,
+                          crop:           deal.crop,
+                          quantity:       deal.quantity,
+                          askPrice:       deal.finalPrice,
+                          harvestDate:    deal.harvestDate,
+                          transportDate:  deal.transportDate,
+                          acceptedAt:     deal.acceptedAtStr,
+                          createdAt:      formatDate(deal.date),
+                        });
+                      }}
                     >
                       <MaterialIcons name="picture-as-pdf" size={15} color={BLUE} />
                       <Text style={styles.downloadText}>Agreement PDF</Text>
