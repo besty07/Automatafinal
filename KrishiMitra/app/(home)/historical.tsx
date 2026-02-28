@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { OILSEED_CROPS, HISTORICAL_DATA } from '@/constants/historicalData';
 import CropPicker from '@/components/crop-picker';
+import PriceChart from '@/components/price-chart';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -131,6 +132,22 @@ export default function HistoricalScreen() {
           </View>
         </ScrollView>
 
+        {/* Price Chart Section */}
+        {data.length > 0 && (
+          <View style={styles.chartWrapper}>
+            <PriceChart
+              data={data.map((item) => ({
+                date: item.date,
+                closingPrice: item.closingPrice,
+                highPrice: item.highPrice,
+                lowPrice: item.lowPrice,
+              }))}
+              cropLabel={OILSEED_CROPS.find((c) => c.key === selectedCrop)?.label || 'Crop'}
+              height={260}
+            />
+          </View>
+        )}
+
         <View style={{ height: 24 }} />
       </ScrollView>
     </View>
@@ -219,5 +236,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
+  },
+  chartWrapper: {
+    paddingHorizontal: 0,
+    marginTop: 16,
   },
 });
