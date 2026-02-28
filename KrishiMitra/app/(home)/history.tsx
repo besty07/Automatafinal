@@ -1,10 +1,11 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LangPicker from '@/components/lang-picker';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
+import { downloadAgreementPdf } from '@/utils/generateAgreementPdf';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -102,6 +103,34 @@ export default function HistoryScreen() {
                     <Text style={styles.statValue}>{item.transportDate ?? '—'}</Text>
                   </View>
                 </View>
+
+                {item.status === 'Accepted' && item.dealerName && (
+                  <View style={styles.acceptedBanner}>
+                    <MaterialIcons name="handshake" size={14} color="#2D7A3A" />
+                    <Text style={styles.acceptedText}>Accepted by {item.dealerName}</Text>
+                    <TouchableOpacity
+                      style={styles.downloadBtn}
+                      activeOpacity={0.8}
+                      onPress={() => downloadAgreementPdf({
+                        dealId:         item.id,
+                        farmerName:     item.farmerName ?? auth.currentUser?.displayName ?? 'Farmer',
+                        farmerLocation: item.location ?? '',
+                        dealerName:     item.dealerName,
+                        dealerUid:      item.acceptedBy,
+                        crop:           item.crop,
+                        quantity:       item.quantity,
+                        askPrice:       item.askPrice,
+                        harvestDate:    item.harvestDate,
+                        transportDate:  item.transportDate,
+                        acceptedAt:     item.acceptedAtStr,
+                        createdAt:      item.date,
+                      })}
+                    >
+                      <MaterialIcons name="picture-as-pdf" size={14} color={GREEN} />
+                      <Text style={styles.downloadText}>Download Agreement</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             );
           })}
@@ -188,4 +217,19 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11, color: GRAY_TEXT, marginBottom: 3 },
   statValue: { fontSize: 15, fontWeight: '600', color: DARK_TEXT },
   divider: { width: 1, backgroundColor: '#E0E0E0', marginHorizontal: 8 },
+
+  acceptedBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#E8F5E9', borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 8,
+    marginTop: 10, flexWrap: 'wrap',
+  },
+  acceptedText: { fontSize: 12, color: '#2D7A3A', fontWeight: '600', flex: 1 },
+  downloadBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#fff', borderRadius: 8,
+    borderWidth: 1.5, borderColor: '#2D7A3A',
+    paddingHorizontal: 8, paddingVertical: 4,
+  },
+  downloadText: { fontSize: 11, fontWeight: '700', color: '#2D7A3A' },
 });

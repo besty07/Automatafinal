@@ -1,9 +1,10 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LangPicker from '@/components/lang-picker';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
+import { downloadAgreementPdf } from '@/utils/generateAgreementPdf';
 
 const BLUE = '#1A5276';
 const LIGHT_BLUE_BG = '#EAF2F8';
@@ -109,6 +110,29 @@ export default function PrevDealsScreen() {
                     <MaterialIcons name="calendar-today" size={12} color={GRAY_TEXT} />
                     <Text style={styles.dateText}>{formatDate(deal.date)}</Text>
                   </View>
+                  {isCompleted && (
+                    <TouchableOpacity
+                      style={styles.downloadBtn}
+                      activeOpacity={0.8}
+                      onPress={() => downloadAgreementPdf({
+                        dealId:         deal.dealId ?? deal.id,
+                        farmerName:     deal.farmerName,
+                        farmerLocation: deal.location,
+                        dealerName:     deal.dealerName ?? 'Dealer',
+                        dealerUid:      deal.dealerUid,
+                        crop:           deal.crop,
+                        quantity:       deal.quantity,
+                        askPrice:       deal.finalPrice,
+                        harvestDate:    deal.harvestDate,
+                        transportDate:  deal.transportDate,
+                        acceptedAt:     deal.acceptedAtStr,
+                        createdAt:      formatDate(deal.date),
+                      })}
+                    >
+                      <MaterialIcons name="picture-as-pdf" size={15} color={BLUE} />
+                      <Text style={styles.downloadText}>Agreement PDF</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             );
@@ -169,4 +193,10 @@ const styles = StyleSheet.create({
   cardFooter:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   dateRow:     { flexDirection: 'row', alignItems: 'center', gap: 4 },
   dateText:    { fontSize: 11, color: GRAY_TEXT },
+  downloadBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: '#D6EAF8', borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 5,
+  },
+  downloadText: { fontSize: 12, fontWeight: '700', color: BLUE },
 });
