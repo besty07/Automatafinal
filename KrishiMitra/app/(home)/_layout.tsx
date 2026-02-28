@@ -66,9 +66,10 @@ export default function HomeLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="mic" />
       <Tabs.Screen name="history" />
-      <Tabs.Screen name="hedging"   options={{ href: null }} />
+      <Tabs.Screen name="hedging" options={{ href: null }} />
       <Tabs.Screen name="reminders" options={{ href: null }} />
       <Tabs.Screen name="gov-schemes" options={{ href: null }} />
+      <Tabs.Screen name="historical" options={{ href: null }} />
     </Tabs>
   );
 }

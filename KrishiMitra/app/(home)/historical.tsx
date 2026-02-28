@@ -21,31 +21,25 @@ export default function HistoricalScreen() {
   const { t } = useLanguage();
   const [selectedCrop, setSelectedCrop] = useState(OILSEED_CROPS[0].key);
 
-  // priority columns for farmers (date added)
+  // display exactly the 8 requested columns in the specified order
   const DISPLAY_FIELDS: (keyof typeof HISTORICAL_DATA[string][0])[] = [
-    'date',
-    'instrumentType',
     'symbol',
-    'expiryDate',
-    'openingPrice',
+    'date',
     'highPrice',
     'lowPrice',
+    'openingPrice',
     'closingPrice',
     'quantityTradedToday',
-    'noOfTrades',
     'tradedValueInLacs',
   ];
   const FIELD_LABELS: Record<string, string> = {
-    date: 'Date',
-    instrumentType: 'Type',
     symbol: 'Symbol',
-    expiryDate: 'Expiry',
-    openingPrice: 'Opening Price',
+    date: 'Date',
     highPrice: 'High Price',
     lowPrice: 'Low Price',
+    openingPrice: 'Opening Price',
     closingPrice: 'Closing Price',
-    quantityTradedToday: 'Qty Traded',
-    noOfTrades: 'No. Trades',
+    quantityTradedToday: 'Quantity Traded',
     tradedValueInLacs: 'Trade Value (Lacs)',
   };
 
@@ -53,6 +47,18 @@ export default function HistoricalScreen() {
     if (a.symbol !== b.symbol) return a.symbol.localeCompare(b.symbol);
     return a.date.localeCompare(b.date);
   });
+
+  // specify a minimum width per column to make table readable on phones
+  const COL_WIDTHS: Record<string, number> = {
+    symbol: 80,
+    date: 100,
+    highPrice: 80,
+    lowPrice: 80,
+    openingPrice: 80,
+    closingPrice: 80,
+    quantityTradedToday: 100,
+    tradedValueInLacs: 100,
+  };
 
   return (
     <View style={styles.root}>
@@ -88,7 +94,14 @@ export default function HistoricalScreen() {
           <View>
             <View style={styles.tableHeader}>
               {DISPLAY_FIELDS.map((field) => (
-                <Text key={field} style={[styles.cell, styles.headerCell]}>
+                <Text
+                  key={field}
+                  style={[
+                    styles.cell,
+                    styles.headerCell,
+                    { minWidth: COL_WIDTHS[field] || 80 },
+                  ]}
+                >
                   {FIELD_LABELS[field] || field}
                 </Text>
               ))}
@@ -104,7 +117,10 @@ export default function HistoricalScreen() {
                   ]}
                 >
                   {DISPLAY_FIELDS.map((field) => (
-                    <Text key={field} style={styles.cell}>
+                    <Text
+                      key={field}
+                      style={[styles.cell, { minWidth: COL_WIDTHS[field] || 80 }]}
+                    >
                       {String(item[field] ?? '-')}
                     </Text>
                   ))}
@@ -157,17 +173,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: GREEN,
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#333',
   },
-  headerCell: { fontSize: 14, fontWeight: '600', color: '#fff', flex: 1 },
+  headerCell: { 
+    fontSize: 12, 
+    fontWeight: '700', 
+    color: '#fff',
+    flex: 1, 
+    textAlign: 'center', 
+    paddingHorizontal: 4,
+    borderRightWidth: 1,
+    borderColor: '#fff',
+  },
   tableRow: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: '#ddd',
   },
-  evenRow: { backgroundColor: '#F9F9F9' },
-  cell: { fontSize: 14, color: DARK_TEXT, flex: 1 },
+  evenRow: { backgroundColor: '#F5F5F5' },
+  cell: { 
+    fontSize: 12, 
+    color: DARK_TEXT, 
+    flex: 1, 
+    textAlign: 'center',
+    paddingHorizontal: 4,
+    borderRightWidth: 1,
+    borderColor: '#ddd',
+  },
   pickerWrapper: {
     marginBottom: 20,
     paddingHorizontal: 16,

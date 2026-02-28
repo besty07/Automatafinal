@@ -141,19 +141,26 @@ export default function LoggedInHome() {
               style={styles.tile}
               activeOpacity={0.8}
               onPress={() => {
-                // only a couple of tiles have screens implemented at the
-                // moment; others can be added later.
-                if (i === 0) {
-                  router.push('/(home)/gov-schemes' as any);
-                } else if (i === 1) {
-                  // This connects the Weather tile (index 1) to your new weather.tsx page
-                  router.push('/(home)/weather' as any);
-                } else if (i === 4) {
-                  router.push('/(home)/historical' as any);
+                switch (i) {
+                  case 0:
+                    router.push('/(home)/gov-schemes' as any);
+                    break;
+                  case 1:
+                    router.push('/(home)/weather' as any);
+                    break;
+                  case 2:
+                    router.push('/(home)/resources' as any);
+                    break;
+                  case 4:
+                    router.push('/(home)/historical' as any);
+                    break;
+                  case 5:
+                    router.push('/(home)/reminders' as any);
+                    break;
+                  default:
+                    // Tile 3 (Fertilizer) - no screen yet
+                    break;
                 }
-                if (i === 0) router.push('/(home)/gov-schemes' as any);
-                if (i === 2) router.push('/(home)/resources' as any);
-                if (i === 5) router.push('/(home)/reminders' as any);
               }}
             >
               <View style={styles.tileIconCircle}>

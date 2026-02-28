@@ -2,7 +2,7 @@
 export interface HistoricalRecord {
   instrumentType: string;
   symbol: string;
-  expiryDate: string; // M/D/YYYY
+  expiryDate: string;
   underlyingCommodity: string;
   strikePrice: number;
   optionType: string;
@@ -17,9 +17,8 @@ export interface HistoricalRecord {
   noOfTrades: number;
   tradedValueInLacs: number;
   openInterest: number;
-  lastTradedDate: string; // M/D/YYYY
-  // convenience field derived from lastTradedDate for sorting/lookup
-  date: string; // YYYY-MM-DD
+  lastTradedDate: string;
+  date: string; // YYYY-MM-DD format
 }
 
 export const OILSEED_CROPS = [
@@ -29,15 +28,13 @@ export const OILSEED_CROPS = [
   { key: 'sesame', label: 'Sesame' },
 ];
 
-// mock data pulled from the CSV rows shown earlier – in practice you would
-// write a script to convert every CSV into this structure.  We include a
-// handful of rows per crop to demonstrate the full object shape.
+// Build historical data with proper date handling
 export const HISTORICAL_DATA: Record<string, HistoricalRecord[]> = {
   soybeans: [
     {
       instrumentType: 'FUTCOM',
       symbol: 'SOYBEAN',
-      expiryDate: '2/20/2026',
+      expiryDate: '2026-02-20',
       underlyingCommodity: 'SOYBEAN',
       strikePrice: 0,
       optionType: 'XX',
@@ -52,37 +49,57 @@ export const HISTORICAL_DATA: Record<string, HistoricalRecord[]> = {
       noOfTrades: 150,
       tradedValueInLacs: 850,
       openInterest: 5000,
-      lastTradedDate: '2/10/2026',
+      lastTradedDate: '2026-02-10',
       date: '2026-02-10',
     },
     {
       instrumentType: 'FUTCOM',
       symbol: 'SOYBEAN',
-      expiryDate: '2/20/2026',
+      expiryDate: '2026-03-20',
       underlyingCommodity: 'SOYBEAN',
       strikePrice: 0,
       optionType: 'XX',
       exBasisDeliveryCentre: 'MUMBAI',
       priceUnit: 'RS/QUINTAL',
-      openingPrice: 4300,
-      highPrice: 4350,
-      lowPrice: 4250,
-      closingPrice: 4300,
-      quantityTradedToday: 1800,
+      openingPrice: 4310,
+      highPrice: 4370,
+      lowPrice: 4280,
+      closingPrice: 4330,
+      quantityTradedToday: 1950,
       measure: 'MT',
-      noOfTrades: 140,
-      tradedValueInLacs: 870,
-      openInterest: 5100,
-      lastTradedDate: '2/11/2026',
-      date: '2026-02-11',
+      noOfTrades: 160,
+      tradedValueInLacs: 900,
+      openInterest: 5200,
+      lastTradedDate: '2026-02-12',
+      date: '2026-02-12',
+    },
+    {
+      instrumentType: 'FUTCOM',
+      symbol: 'SOYBEAN',
+      expiryDate: '2026-04-20',
+      underlyingCommodity: 'SOYBEAN',
+      strikePrice: 0,
+      optionType: 'XX',
+      exBasisDeliveryCentre: 'MUMBAI',
+      priceUnit: 'RS/QUINTAL',
+      openingPrice: 4325,
+      highPrice: 4385,
+      lowPrice: 4300,
+      closingPrice: 4360,
+      quantityTradedToday: 2100,
+      measure: 'MT',
+      noOfTrades: 170,
+      tradedValueInLacs: 920,
+      openInterest: 5300,
+      lastTradedDate: '2026-02-13',
+      date: '2026-02-13',
     },
   ],
-
   sunflower: [
     {
       instrumentType: 'FUTCOM',
       symbol: 'SUNFLOWER',
-      expiryDate: '2/20/2026',
+      expiryDate: '2026-02-20',
       underlyingCommodity: 'SUNFLOWER',
       strikePrice: 0,
       optionType: 'XX',
@@ -97,16 +114,36 @@ export const HISTORICAL_DATA: Record<string, HistoricalRecord[]> = {
       noOfTrades: 90,
       tradedValueInLacs: 800,
       openInterest: 3000,
-      lastTradedDate: '2/10/2026',
+      lastTradedDate: '2026-02-10',
       date: '2026-02-10',
     },
+    {
+      instrumentType: 'FUTCOM',
+      symbol: 'SUNFLOWER',
+      expiryDate: '2026-03-20',
+      underlyingCommodity: 'SUNFLOWER',
+      strikePrice: 0,
+      optionType: 'XX',
+      exBasisDeliveryCentre: 'KOLKATA',
+      priceUnit: 'RS/QUINTAL',
+      openingPrice: 6825,
+      highPrice: 6925,
+      lowPrice: 6800,
+      closingPrice: 6900,
+      quantityTradedToday: 1300,
+      measure: 'MT',
+      noOfTrades: 95,
+      tradedValueInLacs: 830,
+      openInterest: 3200,
+      lastTradedDate: '2026-02-11',
+      date: '2026-02-11',
+    },
   ],
-
   castor: [
     {
       instrumentType: 'FUTCOM',
       symbol: 'CASTOR',
-      expiryDate: '2/20/2026',
+      expiryDate: '2026-02-20',
       underlyingCommodity: 'CASTORSEEDNEW',
       strikePrice: 0,
       optionType: 'XX',
@@ -121,13 +158,13 @@ export const HISTORICAL_DATA: Record<string, HistoricalRecord[]> = {
       noOfTrades: 350,
       tradedValueInLacs: 3095.62,
       openInterest: 14365,
-      lastTradedDate: '2/10/2026',
+      lastTradedDate: '2026-02-10',
       date: '2026-02-10',
     },
     {
       instrumentType: 'FUTCOM',
       symbol: 'CASTOR',
-      expiryDate: '3/20/2026',
+      expiryDate: '2026-03-20',
       underlyingCommodity: 'CASTORSEEDNEW',
       strikePrice: 0,
       optionType: 'XX',
@@ -142,32 +179,73 @@ export const HISTORICAL_DATA: Record<string, HistoricalRecord[]> = {
       noOfTrades: 470,
       tradedValueInLacs: 3519.12,
       openInterest: 15970,
-      lastTradedDate: '2/10/2026',
+      lastTradedDate: '2026-02-10',
       date: '2026-02-10',
     },
+    {
+      instrumentType: 'FUTCOM',
+      symbol: 'CASTOR',
+      expiryDate: '2026-04-20',
+      underlyingCommodity: 'CASTORSEEDNEW',
+      strikePrice: 0,
+      optionType: 'XX',
+      exBasisDeliveryCentre: 'DEESA',
+      priceUnit: 'RS/QUINTAL',
+      openingPrice: 6520,
+      highPrice: 6570,
+      lowPrice: 6510,
+      closingPrice: 6550,
+      quantityTradedToday: 4600,
+      measure: 'MT',
+      noOfTrades: 400,
+      tradedValueInLacs: 3150,
+      openInterest: 14200,
+      lastTradedDate: '2026-02-11',
+      date: '2026-02-11',
+    },
   ],
-
   sesame: [
     {
       instrumentType: 'FUTCOM',
       symbol: 'SESAME',
-      expiryDate: '2/20/2026',
+      expiryDate: '2026-02-20',
       underlyingCommodity: 'SESAMENUM',
       strikePrice: 0,
       optionType: 'XX',
       exBasisDeliveryCentre: 'JAIPUR',
       priceUnit: 'RS/QUINTAL',
-      openingPrice: 0,
-      highPrice: 0,
-      lowPrice: 0,
-      closingPrice: 0,
-      quantityTradedToday: 0,
+      openingPrice: 1200,
+      highPrice: 1250,
+      lowPrice: 1150,
+      closingPrice: 1220,
+      quantityTradedToday: 450,
       measure: 'MT',
-      noOfTrades: 0,
-      tradedValueInLacs: 0,
-      openInterest: 0,
-      lastTradedDate: '2/10/2026',
+      noOfTrades: 35,
+      tradedValueInLacs: 55,
+      openInterest: 120,
+      lastTradedDate: '2026-02-10',
       date: '2026-02-10',
+    },
+    {
+      instrumentType: 'FUTCOM',
+      symbol: 'SESAME',
+      expiryDate: '2026-03-20',
+      underlyingCommodity: 'SESAMENUM',
+      strikePrice: 0,
+      optionType: 'XX',
+      exBasisDeliveryCentre: 'JAIPUR',
+      priceUnit: 'RS/QUINTAL',
+      openingPrice: 1000,
+      highPrice: 1050,
+      lowPrice: 980,
+      closingPrice: 1025,
+      quantityTradedToday: 500,
+      measure: 'MT',
+      noOfTrades: 25,
+      tradedValueInLacs: 51,
+      openInterest: 200,
+      lastTradedDate: '2026-02-11',
+      date: '2026-02-11',
     },
   ],
 };
