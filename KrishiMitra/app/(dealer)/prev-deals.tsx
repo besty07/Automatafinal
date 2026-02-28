@@ -2,7 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LangPicker from '@/components/lang-picker';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { downloadAgreementPdf } from '@/utils/generateAgreementPdf';
 
@@ -18,21 +18,41 @@ const formatDate = (ts: any): string => {
 };
 
 export default function PrevDealsScreen() {
-  const [history, setHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [history, setHistory]     = useState<any[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [dealerProfile, setDealerProfile] = useState<any>(null);
+  const [farmerProfiles, setFarmerProfiles] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
     if (!uid) { setLoading(false); return; }
+
+    // fetch dealer profile once
+    getDoc(doc(db, 'dealers', uid)).then((snap) => {
+      if (snap.exists()) setDealerProfile(snap.data());
+    });
 
     const q = query(
       collection(db, 'dealers', uid, 'history'),
       orderBy('date', 'desc')
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      setHistory(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    const unsub = onSnapshot(q, async (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setHistory(list);
       setLoading(false);
+
+      // fetch farmer profiles to populate phone/aadhar in PDF
+      const fids = [...new Set(list
+        .filter((d: any) => d.farmerId)
+        .map((d: any) => d.farmerId as string)
+      )];
+      const profileMap: Record<string, any> = {};
+      await Promise.all(fids.map(async (fid) => {
+        const snap2 = await getDoc(doc(db, 'users', fid));
+        if (snap2.exists()) profileMap[fid] = snap2.data();
+      }));
+      setFarmerProfiles(profileMap);
     });
 
     return () => unsub();
@@ -75,7 +95,7 @@ export default function PrevDealsScreen() {
                     <MaterialIcons name="person" size={22} color="#fff" />
                   </View>
                   <View style={styles.cardInfo}>
-                    <Text style={styles.farmerName}>{deal.farmerName}</Text>
+                    <Text style={styles.farmerName}>{farmerProfiles[deal.farmerId]?.name ?? deal.farmerName}</Text>
                     <View style={styles.locationRow}>
                       <MaterialIcons name="location-on" size={12} color={GRAY_TEXT} />
                       <Text style={styles.locationText}>{deal.location}</Text>
@@ -114,20 +134,30 @@ export default function PrevDealsScreen() {
                     <TouchableOpacity
                       style={styles.downloadBtn}
                       activeOpacity={0.8}
-                      onPress={() => downloadAgreementPdf({
-                        dealId:         deal.dealId ?? deal.id,
-                        farmerName:     deal.farmerName,
-                        farmerLocation: deal.location,
-                        dealerName:     deal.dealerName ?? 'Dealer',
-                        dealerUid:      deal.dealerUid,
-                        crop:           deal.crop,
-                        quantity:       deal.quantity,
-                        askPrice:       deal.finalPrice,
-                        harvestDate:    deal.harvestDate,
-                        transportDate:  deal.transportDate,
-                        acceptedAt:     deal.acceptedAtStr,
-                        createdAt:      formatDate(deal.date),
-                      })}
+                      onPress={() => {
+                        const fp = farmerProfiles[deal.farmerId] ?? {};
+                        downloadAgreementPdf({
+                          dealId:              deal.dealId ?? deal.id,
+                          farmerName:          fp.name ?? deal.farmerName,
+                          farmerPhone:         fp.phone,
+                          farmerAadhar:        fp.aadhar,
+                          farmerAddress:       fp.state ?? deal.location ?? '',
+                          dealerName:          dealerProfile?.businessName ?? deal.dealerName ?? 'Dealer',
+                          dealerUid:           deal.dealerUid,
+                          dealerContact:       dealerProfile?.contactName,
+                          dealerPhone:         dealerProfile?.phone,
+                          dealerEmail:         dealerProfile?.email,
+                          dealerBusinessType:  dealerProfile?.businessType,
+                          dealerState:         dealerProfile?.state,
+                          crop:                deal.crop,
+                          quantity:            deal.quantity,
+                          askPrice:            deal.finalPrice,
+                          harvestDate:         deal.harvestDate,
+                          transportDate:       deal.transportDate,
+                          acceptedAt:          deal.acceptedAtStr,
+                          createdAt:           formatDate(deal.date),
+                        });
+                      }}
                     >
                       <MaterialIcons name="picture-as-pdf" size={15} color={BLUE} />
                       <Text style={styles.downloadText}>Agreement PDF</Text>

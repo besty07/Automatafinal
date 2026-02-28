@@ -16,6 +16,8 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
+  getDocs,
   onSnapshot,
   query,
   serverTimestamp,
@@ -57,6 +59,7 @@ export default function DealerDashboard() {
   const [seeding,      setSeeding]      = useState(false);
   const [confirmDeal,  setConfirmDeal]  = useState<any | null>(null);
   const [accepting,    setAccepting]    = useState(false);
+  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
 
   // ── Real-time listener on the 'deals' Firestore collection ────────────────
   useEffect(() => {
@@ -87,12 +90,50 @@ export default function DealerDashboard() {
     return () => unsub();
   }, []);
 
+  // Resolve farmer names for deals (by farmerId or by phone extracted from dummy email)
+  useEffect(() => {
+    const resolve = async () => {
+      for (const d of deals) {
+        // if farmerId present, fetch users/{uid}
+        if (d.farmerId && !resolvedNames[d.farmerId]) {
+          try {
+            const snap = await getDoc(doc(db, 'users', d.farmerId));
+            if (snap.exists()) {
+              const data = snap.data() as any;
+              setResolvedNames(prev => ({ ...prev, [d.farmerId]: data.name || d.farmerName }));
+              continue;
+            }
+          } catch {}
+        }
+
+        // if no farmerId but farmerName looks like dummy email, try to find by phone
+        if (!d.farmerId && typeof d.farmerName === 'string' && d.farmerName.includes('@krishimitra.com')) {
+          const phone = d.farmerName.split('@')[0];
+          if (phone && !resolvedNames[phone]) {
+            try {
+              const q = query(collection(db, 'users'), where('phone', '==', phone));
+              const snaps = await getDocs(q);
+              if (!snaps.empty) {
+                const u = snaps.docs[0].data() as any;
+                setResolvedNames(prev => ({ ...prev, [phone]: u.name || d.farmerName }));
+              }
+            } catch {}
+          }
+        }
+      }
+    };
+    resolve();
+  }, [deals, resolvedNames]);
+
   // ── Accept a deal (called after confirmation) ───────────────────────────
   const handleAccept = async (deal: any) => {
     const user = auth.currentUser;
     const uid  = user?.uid;
     if (!uid) { Alert.alert('Error', 'Not logged in.'); return; }
-    const dealerName = user?.displayName ?? user?.email ?? 'Dealer';
+    const dealerSnap = await getDoc(doc(db, 'dealers', uid));
+    const dealerName = dealerSnap.exists()
+      ? (dealerSnap.data().businessName ?? 'Dealer')
+      : 'Dealer';
     setAccepting(true);
     try {
       const acceptedAt = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -105,6 +146,7 @@ export default function DealerDashboard() {
       });
       await addDoc(collection(db, 'dealers', uid, 'history'), {
         farmerName:    deal.farmerName,
+        farmerId:      deal.farmerId ?? '',
         location:      deal.location ?? '',
         crop:          deal.crop,
         quantity:      deal.quantity,
@@ -231,7 +273,13 @@ export default function DealerDashboard() {
               <View style={styles.cardTop}>
                 <View style={[styles.cropDot, { backgroundColor: cropColor }]} />
                 <View style={styles.cardInfo}>
-                  <Text style={styles.farmerName}>{deal.farmerName}</Text>
+                  <Text style={styles.farmerName}>{
+                    deal.farmerId
+                      ? (resolvedNames[deal.farmerId] ?? deal.farmerName)
+                      : (typeof deal.farmerName === 'string' && deal.farmerName.includes('@krishimitra.com')
+                          ? (resolvedNames[deal.farmerName.split('@')[0]] ?? deal.farmerName)
+                          : deal.farmerName)
+                  }</Text>
                   <View style={styles.locationRow}>
                     <MaterialIcons name="location-on" size={12} color={GRAY_TEXT} />
                     <Text style={styles.locationText}>{deal.location}</Text>

@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import React, { useState, useRef } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -76,7 +76,13 @@ export default function HedgingScreen() {
     if (!transportDate.trim()) { Alert.alert('Missing field', 'Please enter transport date.'); return; }
 
     const user = auth.currentUser;
-    const farmerName = user?.displayName ?? user?.email ?? 'Farmer';
+    if (!user) { Alert.alert('Error', 'Not logged in.'); return; }
+
+    // fetch real name from Firestore (displayName is never set in this app)
+    const profileSnap = await getDoc(doc(db, 'users', user.uid));
+    const farmerName = profileSnap.exists()
+      ? (profileSnap.data().name ?? 'Farmer')
+      : 'Farmer';
 
     setSubmitting(true);
     try {

@@ -2,17 +2,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Deals: any logged-in user can read & create; update allowed too (dealer actions)
+    // ── Deals: any logged-in user can read, create, update
     match /deals/{dealId} {
       allow read, create, update: if request.auth != null;
     }
 
-    // ── Reminders: each user can only access their own
+    // ── Farmer profile: each user can read/write their own doc
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── Reminders: each user can only access their own subcollection
     match /users/{userId}/reminders/{reminderId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ── Dealer history: each dealer can only access their own
+    // ── Dealer profile: each dealer can read/write their own doc;
+    //    farmers can read any dealer doc (needed for PDF generation)
+    match /dealers/{dealerId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == dealerId;
+    }
+
+    // ── Dealer history: each dealer can only access their own subcollection
     match /dealers/{dealerId}/history/{histId} {
       allow read, write: if request.auth != null && request.auth.uid == dealerId;
     }
