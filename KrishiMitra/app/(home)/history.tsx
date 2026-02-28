@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LangPicker from '@/components/lang-picker';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { downloadAgreementPdf } from '@/utils/generateAgreementPdf';
 
@@ -22,12 +22,19 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }
 
 export default function HistoryScreen() {
   const { t } = useLanguage();
-  const [deals, setDeals]     = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [deals, setDeals]         = useState<any[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [farmerProfile, setFarmerProfile] = useState<any>(null);
+  const [dealerProfiles, setDealerProfiles] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
     if (!uid) { setLoading(false); return; }
+
+    // fetch farmer profile once
+    getDoc(doc(db, 'users', uid)).then((snap) => {
+      if (snap.exists()) setFarmerProfile(snap.data());
+    });
 
     const q = query(
       collection(db, 'deals'),
@@ -35,9 +42,22 @@ export default function HistoryScreen() {
       orderBy('createdAt', 'desc'),
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      setDeals(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    const unsub = onSnapshot(q, async (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setDeals(list);
       setLoading(false);
+
+      // fetch dealer profiles for accepted deals
+      const uids = [...new Set(list
+        .filter((d: any) => d.status === 'Accepted' && d.acceptedBy)
+        .map((d: any) => d.acceptedBy as string)
+      )];
+      const profileMap: Record<string, any> = {};
+      await Promise.all(uids.map(async (uid) => {
+        const snap2 = await getDoc(doc(db, 'dealers', uid));
+        if (snap2.exists()) profileMap[uid] = snap2.data();
+      }));
+      setDealerProfiles(profileMap);
     });
 
     return () => unsub();
@@ -111,20 +131,30 @@ export default function HistoryScreen() {
                     <TouchableOpacity
                       style={styles.downloadBtn}
                       activeOpacity={0.8}
-                      onPress={() => downloadAgreementPdf({
-                        dealId:         item.id,
-                        farmerName:     item.farmerName ?? auth.currentUser?.displayName ?? 'Farmer',
-                        farmerLocation: item.location ?? '',
-                        dealerName:     item.dealerName,
-                        dealerUid:      item.acceptedBy,
-                        crop:           item.crop,
-                        quantity:       item.quantity,
-                        askPrice:       item.askPrice,
-                        harvestDate:    item.harvestDate,
-                        transportDate:  item.transportDate,
-                        acceptedAt:     item.acceptedAtStr,
-                        createdAt:      item.date,
-                      })}
+                      onPress={() => {
+                        const dp = dealerProfiles[item.acceptedBy] ?? {};
+                        downloadAgreementPdf({
+                          dealId:              item.id,
+                          farmerName:          farmerProfile?.name ?? item.farmerName ?? auth.currentUser?.displayName ?? 'Farmer',
+                          farmerPhone:         farmerProfile?.phone,
+                          farmerAadhar:        farmerProfile?.aadhar,
+                          farmerAddress:       farmerProfile?.state ?? item.location ?? '',
+                          dealerName:          dp.businessName ?? item.dealerName,
+                          dealerUid:           item.acceptedBy,
+                          dealerContact:       dp.contactName,
+                          dealerPhone:         dp.phone,
+                          dealerEmail:         dp.email,
+                          dealerBusinessType:  dp.businessType,
+                          dealerState:         dp.state,
+                          crop:                item.crop,
+                          quantity:            item.quantity,
+                          askPrice:            item.askPrice,
+                          harvestDate:         item.harvestDate,
+                          transportDate:       item.transportDate,
+                          acceptedAt:          item.acceptedAtStr,
+                          createdAt:           item.date,
+                        });
+                      }}
                     >
                       <MaterialIcons name="picture-as-pdf" size={14} color={GREEN} />
                       <Text style={styles.downloadText}>Download Agreement</Text>

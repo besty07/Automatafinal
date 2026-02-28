@@ -130,7 +130,10 @@ export default function DealerDashboard() {
     const user = auth.currentUser;
     const uid  = user?.uid;
     if (!uid) { Alert.alert('Error', 'Not logged in.'); return; }
-    const dealerName = user?.displayName ?? user?.email ?? 'Dealer';
+    const dealerSnap = await getDoc(doc(db, 'dealers', uid));
+    const dealerName = dealerSnap.exists()
+      ? (dealerSnap.data().businessName ?? 'Dealer')
+      : 'Dealer';
     setAccepting(true);
     try {
       const acceptedAt = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -143,6 +146,7 @@ export default function DealerDashboard() {
       });
       await addDoc(collection(db, 'dealers', uid, 'history'), {
         farmerName:    deal.farmerName,
+        farmerId:      deal.farmerId ?? '',
         location:      deal.location ?? '',
         crop:          deal.crop,
         quantity:      deal.quantity,

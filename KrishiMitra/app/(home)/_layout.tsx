@@ -10,7 +10,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     <View style={styles.tabBar}>
       {state.routes.map((route: any, index: number) => {
         const isFocused = state.index === index;
-        const isMid = index === 1; // center FAB
+        const isMid = route.name === 'mic'; // center FAB
 
         const onPress = () => {
           const event = navigation.emit({
@@ -66,10 +66,12 @@ export default function HomeLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="mic" />
       <Tabs.Screen name="history" />
-      <Tabs.Screen name="hedging" options={{ href: null }} />
-      <Tabs.Screen name="reminders" options={{ href: null }} />
-      <Tabs.Screen name="gov-schemes" options={{ href: null }} />
-      <Tabs.Screen name="historical" options={{ href: null }} />
+      <Tabs.Screen name="hedging"         options={{ href: null }} />
+      <Tabs.Screen name="reminders"       options={{ href: null }} />
+      <Tabs.Screen name="gov-schemes"     options={{ href: null }} />
+      <Tabs.Screen name="resources"       options={{ href: null }} />
+      <Tabs.Screen name="agri-suggest"    options={{ href: null }} />
+      <Tabs.Screen name="weather"          options={{ href: null }} />
     </Tabs>
   );
 }

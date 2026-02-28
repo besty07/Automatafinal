@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-import { addDoc, collection, serverTimestamp, getDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import React, { useState, useRef } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -76,39 +76,13 @@ export default function HedgingScreen() {
     if (!transportDate.trim()) { Alert.alert('Missing field', 'Please enter transport date.'); return; }
 
     const user = auth.currentUser;
-    // Prefer the farmer's registered name stored in Firestore `users/{uid}`
-    let farmerName = 'Farmer';
-    try {
-      if (user?.uid) {
-        // 1) Try users/{uid}
-        const ud = await getDoc(doc(db, 'users', user.uid));
-        if (ud.exists()) {
-          const data = ud.data() as any;
-          farmerName = data.name || user.displayName || user.email || 'Farmer';
-        } else {
-          // 2) Fallback: if auth email is phone@krishimitra.com, try lookup by phone
-          const maybeEmail = user.email ?? '';
-          if (maybeEmail.includes('@krishimitra.com')) {
-            const phone = maybeEmail.split('@')[0];
-            try {
-              const q = await getDocs(query(collection(db, 'users'), where('phone', '==', phone)));
-              if (!q.empty) {
-                const u = q.docs[0].data() as any;
-                farmerName = u.name || user.displayName || user.email || 'Farmer';
-              } else {
-                farmerName = user.displayName ?? user.email ?? 'Farmer';
-              }
-            } catch {
-              farmerName = user.displayName ?? user.email ?? 'Farmer';
-            }
-          } else {
-            farmerName = user.displayName ?? user.email ?? 'Farmer';
-          }
-        }
-      }
-    } catch {
-      farmerName = user?.displayName ?? user?.email ?? 'Farmer';
-    }
+    if (!user) { Alert.alert('Error', 'Not logged in.'); return; }
+
+    // fetch real name from Firestore (displayName is never set in this app)
+    const profileSnap = await getDoc(doc(db, 'users', user.uid));
+    const farmerName = profileSnap.exists()
+      ? (profileSnap.data().name ?? 'Farmer')
+      : 'Farmer';
 
     setSubmitting(true);
     try {
