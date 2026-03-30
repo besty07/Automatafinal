@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import LangPicker from '@/components/lang-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { collection, doc, getDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { downloadAgreementPdf } from '@/utils/generateAgreementPdf';
@@ -18,6 +18,7 @@ const formatDate = (ts: any): string => {
 };
 
 export default function PrevDealsScreen() {
+  const { t } = useLanguage();
   const [history, setHistory]     = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
   const [dealerProfile, setDealerProfile] = useState<any>(null);
@@ -67,22 +68,21 @@ export default function PrevDealsScreen() {
             <MaterialIcons name="storefront" size={20} color="#fff" />
           </View>
           <View>
-            <Text style={styles.headerTitle}>Previous Deals</Text>
-            <Text style={styles.headerSub}>Your completed transactions</Text>
+            <Text style={styles.headerTitle}>{t.prevDealsTitle}</Text>
+            <Text style={styles.headerSub}>{t.prevDealsSub}</Text>
           </View>
         </View>
-        <LangPicker />
       </View>
 
       {loading ? (
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={BLUE} />
-          <Text style={styles.loadingText}>Loading history…</Text>
+          <Text style={styles.loadingText}>{t.prevDealsLoading}</Text>
         </View>
       ) : history.length === 0 ? (
         <View style={styles.emptyWrap}>
           <MaterialIcons name="history" size={48} color="#AED6F1" />
-          <Text style={styles.emptyText}>No deals yet. Accept or decline deals from the Home tab.</Text>
+          <Text style={styles.emptyText}>{t.prevDealsEmpty}</Text>
         </View>
       ) : (
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -110,17 +110,17 @@ export default function PrevDealsScreen() {
 
                 <View style={styles.statsRow}>
                   <View style={styles.stat}>
-                    <Text style={styles.statLabel}>Crop</Text>
+                    <Text style={styles.statLabel}>{t.prevDealsCrop}</Text>
                     <Text style={styles.statValue}>{deal.crop}</Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.stat}>
-                    <Text style={styles.statLabel}>Quantity</Text>
+                    <Text style={styles.statLabel}>{t.prevDealsQty}</Text>
                     <Text style={styles.statValue}>{deal.quantity}</Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.stat}>
-                    <Text style={styles.statLabel}>Final Price</Text>
+                    <Text style={styles.statLabel}>{t.prevDealsFinalPrice}</Text>
                     <Text style={[styles.statValue, { color: BLUE, fontWeight: '700' }]}>{deal.finalPrice}</Text>
                   </View>
                 </View>
@@ -160,7 +160,7 @@ export default function PrevDealsScreen() {
                       }}
                     >
                       <MaterialIcons name="picture-as-pdf" size={15} color={BLUE} />
-                      <Text style={styles.downloadText}>Agreement PDF</Text>
+                      <Text style={styles.downloadText}>{t.prevDealsAgreementBtn}</Text>
                     </TouchableOpacity>
                   )}
                 </View>

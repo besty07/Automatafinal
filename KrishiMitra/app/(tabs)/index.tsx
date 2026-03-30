@@ -1,15 +1,11 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-// ── VOICE RECOGNITION (commented out until dev build) ──────────────────────
-// import {
-//   ExpoSpeechRecognitionModule,
-//   useSpeechRecognitionEvent,
-// } from 'expo-speech-recognition';
-// ───────────────────────────────────────────────────────────────────────────
 import LangPicker from '@/components/lang-picker';
 import { useLanguage } from '@/contexts/LanguageContext';
-import React, { useRef } from 'react';
+import { matchVoiceCommand, executeVoiceNavigation } from '@/utils/voiceCommands';
+import React, { useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   ScrollView,
   StyleSheet,
@@ -17,6 +13,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+let ExpoSpeechRecognitionModule: any = null;
+let useSpeechRecognitionEvent: any = null;
+
+try {
+  const speechModule = require('expo-speech-recognition');
+  ExpoSpeechRecognitionModule = speechModule.ExpoSpeechRecognitionModule;
+  useSpeechRecognitionEvent = speechModule.useSpeechRecognitionEvent;
+} catch (e) {
+  // Speech recognition not available in Expo Go
+}
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -26,52 +33,65 @@ const GRAY_TEXT = '#555';
 const DARK_TEXT = '#1B2B1C';
 const EXAMPLE_BG = '#F0F0F0';
 
-// ── VOICE COMMANDS (commented out until dev build) ─────────────────────────
-// function processCommand(text: string) {
-//   const cmd = text.toLowerCase().trim();
-//   if (cmd.includes('login') || cmd.includes('log in')) {
-//     router.push('/login' as any);
-//     return true;
-//   }
-//   if (cmd.includes('sign up') || cmd.includes('signup') || cmd.includes('register')) {
-//     router.push('/signup' as any);
-//     return true;
-//   }
-//   return false;
-// }
-// ───────────────────────────────────────────────────────────────────────────
-
 export default function HomeScreen() {
-  // const [listening, setListening] = useState(false);
+  const [listening, setListening] = useState(false);
   const { t } = useLanguage();
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // ── VOICE RECOGNITION HOOKS (commented out until dev build) ──────────────
-  // useSpeechRecognitionEvent('start', () => setListening(true));
-  // useSpeechRecognitionEvent('end', () => { setListening(false); stopPulse(); });
-  // useSpeechRecognitionEvent('result', (event) => {
-  //   const transcript = (event.results?.[0]?.transcript ?? '').toLowerCase().trim();
-  //   if (transcript.length === 0) return;
-  //   const handled = processCommand(transcript);
-  //   if (!handled) {
-  //     Alert.alert('Command not recognised', `You said: "${transcript}"\n\nTry: "login" or "sign up"`);
-  //   }
-  // });
-  // useSpeechRecognitionEvent('error', (event) => {
-  //   setListening(false); stopPulse();
-  //   if (event.error !== 'aborted') Alert.alert('Mic error', event.error);
-  // });
-  // ─────────────────────────────────────────────────────────────────────────
+  const startPulse = () => {
+    pulseLoopRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.2, duration: 600, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      ])
+    );
+    pulseLoopRef.current.start();
+  };
 
-  // ── VOICE HANDLER (commented out until dev build) ─────────────────────────
-  // const handleVoice = async () => {
-  //   if (listening) { ExpoSpeechRecognitionModule.stop(); return; }
-  //   const { granted } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-  //   if (!granted) { Alert.alert('Permission required', 'Mic permission needed.'); return; }
-  //   startPulse();
-  //   ExpoSpeechRecognitionModule.start({ lang: 'en-US', continuous: false, interimResults: false });
-  // };
-  // ─────────────────────────────────────────────────────────────────────────
+  const stopPulse = () => {
+    pulseLoopRef.current?.stop();
+    Animated.spring(pulseAnim, { toValue: 1, useNativeDriver: true }).start();
+  };
+
+  if (useSpeechRecognitionEvent) {
+    useSpeechRecognitionEvent('start', () => setListening(true));
+    useSpeechRecognitionEvent('end', () => { setListening(false); stopPulse(); });
+    useSpeechRecognitionEvent('result', (event: any) => {
+      const transcript: string = event.results?.[0]?.transcript ?? '';
+      if (!transcript) return;
+      const result = matchVoiceCommand(transcript);
+      if (result.matched) {
+        ExpoSpeechRecognitionModule.stop();
+        setTimeout(() => executeVoiceNavigation(result), 300);
+      } else {
+        Alert.alert(
+          'Command not recognised',
+          `You said: "${transcript}"\n\nTry: "login", "sign up", "dealer login", "weather", "hedging", etc.`
+        );
+      }
+    });
+    useSpeechRecognitionEvent('error', (event: any) => {
+      setListening(false);
+      stopPulse();
+      if (event.error !== 'aborted') Alert.alert('Mic error', String(event.error ?? event.message));
+    });
+  }
+
+  const handleVoice = async () => {
+    if (!useSpeechRecognitionEvent || !ExpoSpeechRecognitionModule) {
+      Alert.alert('Not supported', 'Voice commands require a development build. Please use "eas build".');
+      return;
+    }
+    if (listening) { ExpoSpeechRecognitionModule.stop(); return; }
+    const { granted } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    if (!granted) {
+      Alert.alert('Permission required', 'Microphone permission is needed for voice commands.');
+      return;
+    }
+    startPulse();
+    ExpoSpeechRecognitionModule.start({ lang: 'en-IN', continuous: false, interimResults: true });
+  };
 
   return (
     <View style={styles.root}>
@@ -174,8 +194,11 @@ export default function HomeScreen() {
       {/* ── Floating "Tap to Speak" button ── */}
       <View style={styles.fabContainer}>
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          {/* Voice handler disabled until dev build — swap onPress={handleVoice} when ready */}
-          <TouchableOpacity style={styles.fab} activeOpacity={0.85} onPress={() => {}}>            
+          <TouchableOpacity
+            style={[styles.fab, listening && { backgroundColor: '#E53935' }]}
+            activeOpacity={0.85}
+            onPress={handleVoice}
+          >            
             <MaterialIcons name="mic" size={20} color="#fff" />
             <Text style={styles.fabText}>{t.tapToSpeak}</Text>
           </TouchableOpacity>

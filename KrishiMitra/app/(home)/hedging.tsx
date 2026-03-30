@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import { auth, db } from '../firebaseConfig';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -35,6 +36,7 @@ const formatDate = (text: string): string => {
 };
 
 export default function HedgingScreen() {
+  const { t } = useLanguage();
   const [oilseed, setOilseed] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -125,7 +127,7 @@ export default function HedgingScreen() {
           <View style={styles.headerLogoCircle}>
             <MaterialIcons name="trending-up" size={18} color="#fff" />
           </View>
-          <Text style={styles.headerTitle}>Start Hedging</Text>
+          <Text style={styles.headerTitle}>{t.hedgingPageTitle}</Text>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -138,16 +140,14 @@ export default function HedgingScreen() {
         {/* ── Info banner ── */}
         <View style={styles.infoBanner}>
           <MaterialIcons name="info-outline" size={18} color={GREEN} />
-          <Text style={styles.infoBannerText}>
-            Fill in the details below to lock in a price for your oilseed crop.
-          </Text>
+          <Text style={styles.infoBannerText}>{t.hedgingBanner}</Text>
         </View>
 
         {/* ── Form card ── */}
         <View style={styles.card}>
 
           {/* ── Oilseed dropdown ── */}
-          <Text style={styles.label}>Which Oilseed?</Text>
+          <Text style={styles.label}>{t.hedgingWhichOilseed}</Text>
           <TouchableOpacity
             style={[styles.inputWrap, styles.dropdownTrigger]}
             onPress={() => setDropdownOpen(true)}
@@ -155,7 +155,7 @@ export default function HedgingScreen() {
           >
             <MaterialIcons name="grass" size={20} color={GREEN} style={styles.inputIcon} />
             <Text style={[styles.dropdownText, !oilseed && { color: '#aaa' }]}>
-              {oilseed || 'Select oilseed'}
+              {oilseed || t.hedgingSelectOilseed}
             </Text>
             <MaterialIcons name="keyboard-arrow-down" size={22} color={GRAY_TEXT} />
           </TouchableOpacity>
@@ -173,7 +173,7 @@ export default function HedgingScreen() {
               onPress={() => setDropdownOpen(false)}
             >
               <View style={styles.dropdownModal}>
-                <Text style={styles.dropdownModalTitle}>Select Oilseed</Text>
+                <Text style={styles.dropdownModalTitle}>{t.hedgingSelectOilseedTitle}</Text>
                 {OILSEEDS.map((seed) => (
                   <TouchableOpacity
                     key={seed}
@@ -205,7 +205,7 @@ export default function HedgingScreen() {
           </Modal>
 
           {/* ── Location ── */}
-          <Text style={styles.label}>Your Location</Text>
+          <Text style={styles.label}>{t.hedgingLocation}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="location-on" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
@@ -245,7 +245,7 @@ export default function HedgingScreen() {
                   )}
                   {!liveCoords && (
                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text>Getting live location…</Text>
+                      <Text>{t.hedgingGettingLocation}</Text>
                     </View>
                   )}
                 </View>
@@ -283,14 +283,14 @@ export default function HedgingScreen() {
                     setWatching(false);
                   }}
                 >
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Use This Location</Text>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{t.hedgingUseLocation}</Text>
                 </TouchableOpacity>
               </View>
             </Modal>
           </View>
 
           {/* ── Quantity ── */}
-          <Text style={styles.label}>Quantity (in kg)</Text>
+          <Text style={styles.label}>{t.hedgingQuantity}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="scale" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
@@ -305,7 +305,7 @@ export default function HedgingScreen() {
           </View>
 
           {/* ── Harvest Date ── */}
-          <Text style={styles.label}>Harvest Date</Text>
+          <Text style={styles.label}>{t.hedgingHarvestDate}</Text>
           <View style={styles.inputWrap}>
             <MaterialIcons name="calendar-today" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
@@ -320,7 +320,7 @@ export default function HedgingScreen() {
           </View>
 
           {/* ── Price offered per kg ── */}
-          <Text style={styles.label}>Price Offered per kg</Text>
+          <Text style={styles.label}>{t.hedgingPrice}</Text>
           <View style={styles.inputWrap}>
             <Text style={styles.rupeeIcon}>₹</Text>
             <TextInput
@@ -335,7 +335,7 @@ export default function HedgingScreen() {
           </View>
 
           {/* ── Expected Ready for Transport Date ── */}
-          <Text style={styles.label}>Expected Ready for Transport Date</Text>
+          <Text style={styles.label}>{t.hedgingTransportDate}</Text>
           <View style={[styles.inputWrap, { marginBottom: 0 }]}>
             <MaterialIcons name="local-shipping" size={20} color={GREEN} style={styles.inputIcon} />
             <TextInput
@@ -356,7 +356,7 @@ export default function HedgingScreen() {
             ? <ActivityIndicator size="small" color="#fff" />
             : <>
                 <MaterialIcons name="lock" size={20} color="#fff" />
-                <Text style={styles.primaryBtnText}>Lock My Price</Text>
+                <Text style={styles.primaryBtnText}>{t.hedgingLockBtn}</Text>
               </>
           }
         </TouchableOpacity>

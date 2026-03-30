@@ -207,7 +207,7 @@ export default function DealerDashboard() {
           <View>
             <Text style={styles.headerTitle}>Krishi-Mitra</Text>
             <View style={styles.dealerChip}>
-              <Text style={styles.dealerChipText}>DEALER</Text>
+              <Text style={styles.dealerChipText}>{t.dealerChip}</Text>
             </View>
           </View>
         </View>
@@ -253,12 +253,12 @@ export default function DealerDashboard() {
       {loading || seeding ? (
         <View style={styles.loadingRow}>
           <ActivityIndicator size="small" color={BLUE} />
-          <Text style={styles.loadingText}>{seeding ? 'Setting up deals…' : 'Loading deals…'}</Text>
+          <Text style={styles.loadingText}>{seeding ? t.dealerSeeding : t.dealerLoading}</Text>
         </View>
       ) : (
         <View style={styles.countRow}>
           <Text style={styles.countText}>
-            {sorted.length} deal{sorted.length !== 1 ? 's' : ''} found
+            {sorted.length} {t.dealerCountDeals}
           </Text>
         </View>
       )}
@@ -293,19 +293,19 @@ export default function DealerDashboard() {
               <View style={styles.statsRow}>
                 <View style={styles.stat}>
                   <MaterialIcons name="grass" size={14} color={cropColor} />
-                  <Text style={styles.statLabel}>Crop</Text>
+                  <Text style={styles.statLabel}>{t.dealerLabelCrop}</Text>
                   <Text style={styles.statValue}>{deal.crop}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.stat}>
                   <MaterialIcons name="inventory" size={14} color={GRAY_TEXT} />
-                  <Text style={styles.statLabel}>Quantity</Text>
+                  <Text style={styles.statLabel}>{t.dealerLabelQty}</Text>
                   <Text style={styles.statValue}>{deal.quantity}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.stat}>
                   <MaterialIcons name="currency-rupee" size={14} color={GRAY_TEXT} />
-                  <Text style={styles.statLabel}>Ask Price</Text>
+                  <Text style={styles.statLabel}>{t.dealerLabelAskPrice}</Text>
                   <Text style={[styles.statValue, { color: BLUE, fontWeight: '700' }]}>{deal.askPrice}</Text>
                 </View>
               </View>
@@ -317,10 +317,10 @@ export default function DealerDashboard() {
                 </View>
                 <View style={styles.actionRow}>
                   <TouchableOpacity style={styles.rejectBtn} onPress={() => handleDecline(deal)}>
-                    <Text style={styles.rejectText}>Decline</Text>
+                    <Text style={styles.rejectText}>{t.dealerDecline}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.acceptBtn} onPress={() => setConfirmDeal(deal)}>
-                    <Text style={styles.acceptText}>Accept Deal</Text>
+                    <Text style={styles.acceptText}>{t.dealerAccept}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -334,7 +334,7 @@ export default function DealerDashboard() {
       <Modal visible={filterModal} transparent animationType="fade">
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setFilterModal(false)}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Filter by Status</Text>
+            <Text style={styles.modalTitle}>{t.dealerFilterTitle}</Text>
             {FILTER_OPTIONS.map((opt) => (
               <TouchableOpacity key={opt} style={styles.modalOption} onPress={() => { setActiveFilter(opt); setFilterModal(false); }}>
                 <Text style={[styles.modalOptionText, activeFilter === opt && styles.modalOptionActive]}>{opt}</Text>
@@ -349,7 +349,7 @@ export default function DealerDashboard() {
       <Modal visible={sortModal} transparent animationType="fade">
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setSortModal(false)}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Sort by</Text>
+            <Text style={styles.modalTitle}>{t.dealerSortTitle}</Text>
             {SORT_OPTIONS.map((opt) => (
               <TouchableOpacity key={opt} style={styles.modalOption} onPress={() => { setActiveSort(opt); setSortModal(false); }}>
                 <Text style={[styles.modalOptionText, activeSort === opt && styles.modalOptionActive]}>{opt}</Text>
@@ -367,9 +367,9 @@ export default function DealerDashboard() {
             {/* Header */}
             <View style={styles.confirmHeader}>
               <MaterialIcons name="handshake" size={24} color={BLUE} />
-              <Text style={styles.confirmTitle}>Confirm Deal Acceptance</Text>
+              <Text style={styles.confirmTitle}>{t.dealerConfirmTitle}</Text>
             </View>
-            <Text style={styles.confirmSubtitle}>Please review all details before accepting.</Text>
+            <Text style={styles.confirmSubtitle}>{t.dealerConfirmSubtitle}</Text>
 
             {/* Details grid */}
             {confirmDeal && (
@@ -385,9 +385,7 @@ export default function DealerDashboard() {
               </View>
             )}
 
-            <Text style={styles.confirmNote}>
-              A downloadable PDF agreement will be generated after acceptance.
-            </Text>
+            <Text style={styles.confirmNote}>{t.dealerConfirmNote}</Text>
 
             {/* Actions */}
             <View style={styles.confirmActions}>
@@ -396,7 +394,7 @@ export default function DealerDashboard() {
                 onPress={() => setConfirmDeal(null)}
                 disabled={accepting}
               >
-                <Text style={styles.confirmCancelText}>Cancel</Text>
+                <Text style={styles.confirmCancelText}>{t.dealerConfirmCancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmAcceptBtn}
@@ -408,7 +406,7 @@ export default function DealerDashboard() {
                   ? <ActivityIndicator size="small" color="#fff" />
                   : <>
                       <MaterialIcons name="check-circle" size={18} color="#fff" />
-                      <Text style={styles.confirmAcceptText}>Yes, Accept Deal</Text>
+                      <Text style={styles.confirmAcceptText}>{t.dealerConfirmAccept}</Text>
                     </>
                 }
               </TouchableOpacity>

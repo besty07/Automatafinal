@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Linking } from 'react-native';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const GREEN = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -93,6 +94,7 @@ const GOVERNMENT_SCHEMES: Scheme[] = [
 ];
 
 export default function GovSchemesScreen() {
+  const { t } = useLanguage();
   const handleOpenLink = (link: string) => {
     Linking.openURL(link).catch(err => console.error('Failed to open URL:', err));
   };
@@ -104,7 +106,7 @@ export default function GovSchemesScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={22} color={GREEN} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Government Schemes</Text>
+        <Text style={styles.headerTitle}>{t.govSchemesPageTitle}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -114,9 +116,7 @@ export default function GovSchemesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionDesc}>
-          Explore financial aid, subsidies & schemes for agriculture
-        </Text>
+        <Text style={styles.sectionDesc}>{t.govSchemesPageDesc}</Text>
 
         <View style={styles.grid}>
           {GOVERNMENT_SCHEMES.map((scheme) => (
@@ -137,7 +137,7 @@ export default function GovSchemesScreen() {
                 <Text style={styles.schemeDesc}>{scheme.description}</Text>
                 <View style={styles.linkRow}>
                   <MaterialIcons name="open-in-new" size={14} color={GREEN} />
-                  <Text style={styles.linkText}>Visit Scheme</Text>
+                  <Text style={styles.linkText}>{t.govSchemesVisit}</Text>
                 </View>
               </View>
             </TouchableOpacity>

@@ -1,7 +1,6 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-import * as Notifications from 'expo-notifications';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -26,15 +25,22 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-Notifications.setNotificationHandler({
-  handleNotification: async (): Promise<Notifications.NotificationBehavior> => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+let Notifications: any = null;
+try {
+  Notifications = require('expo-notifications');
+  Notifications.setNotificationHandler({
+    handleNotification: async (): Promise<any> => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+} catch (e) {
+  // Notifications not available in Expo Go for Android
+}
 
 const GREEN          = '#2D7A3A';
 const LIGHT_GREEN_BG = '#E8F5E9';
@@ -43,26 +49,39 @@ const GRAY_TEXT      = '#555';
 
 // ── Request permission helper ─────────────────────────────────────────────────
 async function requestPermission(): Promise<boolean> {
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  if (existing === 'granted') return true;
-  const { status } = await Notifications.requestPermissionsAsync();
-  return status === 'granted';
+  if (!Notifications) return false;
+  try {
+    const { status: existing } = await Notifications.getPermissionsAsync();
+    if (existing === 'granted') return true;
+    const { status } = await Notifications.requestPermissionsAsync();
+    return status === 'granted';
+  } catch (e) {
+    return false;
+  }
 }
 
 // ── Schedule a local notification ─────────────────────────────────────────────
 async function scheduleReminder(title: string, date: Date): Promise<string> {
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: '🌾 KrishiMitra Reminder',
-      body: title,
-      sound: true,
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date,
-    },
-  });
-  return id;
+  if (!Notifications) {
+    Alert.alert('Notifications unavailable', 'Please use a development build for reminders.');
+    return '';
+  }
+  try {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🌾 KrishiMitra Reminder',
+        body: title,
+        sound: true,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date,
+      },
+    });
+    return id;
+  } catch (e) {
+    return '';
+  }
 }
 
 // ── Format a JS Date nicely ───────────────────────────────────────────────────
@@ -82,6 +101,7 @@ interface Reminder {
 }
 
 export default function RemindersScreen() {
+  const { t } = useLanguage();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle]             = useState('');
@@ -223,7 +243,7 @@ export default function RemindersScreen() {
           <View style={styles.headerLogoCircle}>
             <MaterialIcons name="alarm" size={18} color="#fff" />
           </View>
-          <Text style={styles.headerTitle}>Reminders</Text>
+          <Text style={styles.headerTitle}>{t.remindersTitle}</Text>
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={openModal}>
           <MaterialIcons name="add" size={24} color={GREEN} />
@@ -233,8 +253,8 @@ export default function RemindersScreen() {
       {reminders.length === 0 ? (
         <View style={styles.empty}>
           <MaterialIcons name="alarm-add" size={60} color="#C8E6C9" />
-          <Text style={styles.emptyTitle}>No reminders yet</Text>
-          <Text style={styles.emptyText}>Tap + to add your first reminder</Text>
+          <Text style={styles.emptyTitle}>{t.remindersEmpty}</Text>
+          <Text style={styles.emptyText}>{t.remindersEmptySub}</Text>
         </View>
       ) : (
         <FlatList
@@ -259,7 +279,7 @@ export default function RemindersScreen() {
                 <View style={styles.cardRight}>
                   <View style={[styles.badge, { backgroundColor: past ? '#F5F5F5' : '#E8F5E9' }]}>
                     <Text style={[styles.badgeText, { color: past ? '#9E9E9E' : GREEN }]}>
-                      {past ? 'Done' : 'Pending'}
+                      {past ? t.reminderPast : 'Pending'}
                     </Text>
                   </View>
                   <TouchableOpacity onPress={() => handleDelete(item)} style={styles.deleteBtn}>
@@ -285,10 +305,10 @@ export default function RemindersScreen() {
         >
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>New Reminder</Text>
+            <Text style={styles.modalTitle}>{t.reminderNewTitle}</Text>
 
             {/* Title input */}
-            <Text style={styles.fieldLabel}>Reminder Title</Text>
+            <Text style={styles.fieldLabel}>{t.reminderFieldTitle}</Text>
             <View style={styles.inputWrap}>
               <MaterialIcons name="edit" size={20} color={GREEN} style={styles.inputIcon} />
               <TextInput
@@ -303,7 +323,7 @@ export default function RemindersScreen() {
             </View>
 
             {/* Date & time selector */}
-            <Text style={styles.fieldLabel}>Date &amp; Time</Text>
+            <Text style={styles.fieldLabel}>{t.reminderFieldDateTime}</Text>
 
             {Platform.OS === 'ios' ? (
               /* iOS: inline spinner, no button needed */
@@ -354,7 +374,7 @@ export default function RemindersScreen() {
                 onPress={() => setModalVisible(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={styles.cancelBtnText}>{t.reminderCancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.saveBtn, saving && { opacity: 0.6 }]}
@@ -363,7 +383,7 @@ export default function RemindersScreen() {
                 disabled={saving}
               >
                 <MaterialIcons name="alarm-add" size={18} color="#fff" />
-                <Text style={styles.saveBtnText}>{saving ? 'Saving…' : 'Set Reminder'}</Text>
+                <Text style={styles.saveBtnText}>{saving ? t.reminderSaving : t.reminderSave}</Text>
               </TouchableOpacity>
             </View>
           </View>

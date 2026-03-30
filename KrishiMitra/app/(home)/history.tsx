@@ -1,7 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import LangPicker from '@/components/lang-picker';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { collection, doc, getDoc, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
@@ -69,7 +68,6 @@ export default function HistoryScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>{t.historyTitle}</Text>
-          <LangPicker />
         </View>
         <Text style={styles.headerSub}>{t.historySubtitle}</Text>
       </View>
@@ -119,7 +117,7 @@ export default function HistoryScreen() {
                   </View>
                   <View style={styles.divider} />
                   <View style={styles.stat}>
-                    <Text style={styles.statLabel}>Transport Date</Text>
+                    <Text style={styles.statLabel}>{t.historyTransportDate}</Text>
                     <Text style={styles.statValue}>{item.transportDate ?? '—'}</Text>
                   </View>
                 </View>
@@ -127,7 +125,7 @@ export default function HistoryScreen() {
                 {item.status === 'Accepted' && item.dealerName && (
                   <View style={styles.acceptedBanner}>
                     <MaterialIcons name="handshake" size={14} color="#2D7A3A" />
-                    <Text style={styles.acceptedText}>Accepted by {item.dealerName}</Text>
+                    <Text style={styles.acceptedText}>{t.historyAcceptedBy} {item.dealerName}</Text>
                     <TouchableOpacity
                       style={styles.downloadBtn}
                       activeOpacity={0.8}
@@ -157,7 +155,7 @@ export default function HistoryScreen() {
                       }}
                     >
                       <MaterialIcons name="picture-as-pdf" size={14} color={GREEN} />
-                      <Text style={styles.downloadText}>Download Agreement</Text>
+                      <Text style={styles.downloadText}>{t.historyDownloadBtn}</Text>
                     </TouchableOpacity>
                   </View>
                 )}

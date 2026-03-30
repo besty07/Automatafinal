@@ -1,6 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import React from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   ScrollView,
   StyleSheet,
@@ -15,6 +16,7 @@ const DARK_TEXT    = '#1B2B1C';
 const GRAY_TEXT    = '#5C6B5D';
 
 export default function AgriSuggestScreen() {
+  const { t } = useLanguage();
   return (
     <View style={styles.root}>
       {/* ── Header ── */}
@@ -26,7 +28,7 @@ export default function AgriSuggestScreen() {
           <View style={styles.headerLogoCircle}>
             <MaterialIcons name="spa" size={18} color="#fff" />
           </View>
-          <Text style={styles.headerTitle}>Agri Suggestions</Text>
+          <Text style={styles.headerTitle}>{t.agriSuggestTitle}</Text>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -35,9 +37,7 @@ export default function AgriSuggestScreen() {
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.subtitle}>
-          Choose a tool below to get personalised recommendations for your farm.
-        </Text>
+        <Text style={styles.subtitle}>{t.agriSuggestSubtitle}</Text>
 
         {/* ── Fertilizer Suggestor ── */}
         <TouchableOpacity
@@ -48,29 +48,29 @@ export default function AgriSuggestScreen() {
           <View style={[styles.cardIconCircle, { backgroundColor: '#2E7D32' }]}>
             <MaterialIcons name="water-drop" size={36} color="#fff" />
           </View>
-          <Text style={styles.cardTitle}>Fertilizer Suggestor</Text>
+          <Text style={styles.cardTitle}>{t.fertSuggestorTitle}</Text>
 
           <View style={styles.divider} />
 
           <BulletPoint
             icon="science"
-            text="Enter your soil's Nitrogen, Phosphorus, and Potassium (NPK) values from your soil health card."
+            text={t.fertSuggestorBullet1}
           />
           <BulletPoint
             icon="search"
-            text="We analyse your NPK levels along with crop type to identify nutrient deficiencies."
+            text={t.fertSuggestorBullet2}
           />
           <BulletPoint
             icon="recommend"
-            text="Get a precise fertilizer recommendation — type, dosage, and application schedule."
+            text={t.fertSuggestorBullet3}
           />
           <BulletPoint
             icon="savings"
-            text="Avoid over-fertilizing and save money while improving your soil health."
+            text={t.fertSuggestorBullet4}
           />
 
           <View style={[styles.ctaRow, { backgroundColor: '#2E7D32' + '15' }]}>
-            <Text style={[styles.ctaText, { color: '#2E7D32' }]}>Get Fertilizer Advice</Text>
+            <Text style={[styles.ctaText, { color: '#2E7D32' }]}>{t.fertSuggestorCta}</Text>
             <MaterialIcons name="arrow-forward" size={18} color="#2E7D32" />
           </View>
         </TouchableOpacity>
@@ -84,29 +84,29 @@ export default function AgriSuggestScreen() {
           <View style={[styles.cardIconCircle, { backgroundColor: '#F57F17' }]}>
             <MaterialIcons name="grass" size={36} color="#fff" />
           </View>
-          <Text style={styles.cardTitle}>Crop Suggestor</Text>
+          <Text style={styles.cardTitle}>{t.cropSuggestorTitle}</Text>
 
           <View style={styles.divider} />
 
           <BulletPoint
             icon="thermostat"
-            text="Share your location, current season, and soil type to tailor advice to your conditions."
+            text={t.cropSuggestorBullet1}
           />
           <BulletPoint
             icon="bar-chart"
-            text="We evaluate soil nutrients, rainfall patterns, and climate data for your region."
+            text={t.cropSuggestorBullet2}
           />
           <BulletPoint
             icon="eco"
-            text="Receive a ranked list of crops that are best suited to grow profitably on your land."
+            text={t.cropSuggestorBullet3}
           />
           <BulletPoint
             icon="trending-up"
-            text="Suggestions also factor in current market demand so you can maximise your income."
+            text={t.cropSuggestorBullet4}
           />
 
           <View style={[styles.ctaRow, { backgroundColor: '#F57F17' + '15' }]}>
-            <Text style={[styles.ctaText, { color: '#F57F17' }]}>Get Crop Advice</Text>
+            <Text style={[styles.ctaText, { color: '#F57F17' }]}>{t.cropSuggestorCta}</Text>
             <MaterialIcons name="arrow-forward" size={18} color="#F57F17" />
           </View>
         </TouchableOpacity>

@@ -19,6 +19,7 @@ import {
   View,
 } from 'react-native';
 import { db } from '../firebaseConfig';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ─── Theme ──────────────────────────────────────────────────────────────────
 const GREEN        = '#2D7A3A';
@@ -184,6 +185,7 @@ const TYPE_LABEL: Record<ResourceType, string> = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function ResourcesScreen() {
+  const { t } = useLanguage();
   const [city, setCity]           = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -235,7 +237,7 @@ export default function ResourcesScreen() {
             <View style={styles.headerLogoCircle}>
               <MaterialIcons name="place" size={18} color="#fff" />
             </View>
-            <Text style={styles.headerTitle}>Resources Near You</Text>
+            <Text style={styles.headerTitle}>{t.resourcesTitle}</Text>
           </View>
           <View style={{ width: 40 }} />
         </View>
@@ -247,16 +249,14 @@ export default function ResourcesScreen() {
           <View style={styles.cityIllustration}>
             <MaterialIcons name="store" size={72} color={GREEN} />
           </View>
-          <Text style={styles.cityHeading}>Where are you located?</Text>
-          <Text style={styles.citySubtitle}>
-            Enter your city or district to discover agri-shops, training events, and exhibitions nearby.
-          </Text>
+          <Text style={styles.cityHeading}>{t.resourcesCityHeading}</Text>
+          <Text style={styles.citySubtitle}>{t.resourcesCitySubtitle}</Text>
 
           <View style={styles.cityInputWrap}>
             <MaterialIcons name="location-city" size={22} color={GREEN} style={{ marginRight: 10 }} />
             <TextInput
               style={styles.cityInput}
-              placeholder="e.g. Satara, Pune, Nashik…"
+              placeholder={t.resourcesCityPlaceholder}
               placeholderTextColor="#aaa"
               value={city}
               onChangeText={setCity}
@@ -273,7 +273,7 @@ export default function ResourcesScreen() {
             onPress={() => setSubmitted(true)}
           >
             <MaterialIcons name="search" size={20} color="#fff" />
-            <Text style={styles.primaryBtnText}>Find Resources</Text>
+            <Text style={styles.primaryBtnText}>{t.resourcesFindBtn}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -298,7 +298,7 @@ export default function ResourcesScreen() {
           style={styles.changeCityBtn}
           onPress={() => { setSubmitted(false); setCity(''); }}
         >
-          <Text style={styles.changeCityText}>Change</Text>
+          <Text style={styles.changeCityText}>{t.resourcesChange}</Text>
         </TouchableOpacity>
       </View>
 
@@ -312,7 +312,7 @@ export default function ResourcesScreen() {
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === 'all' ? 'All' : TYPE_LABEL[tab] + 's'}
+              {tab === 'all' ? t.resourcesTabAll : TYPE_LABEL[tab] + 's'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -322,7 +322,7 @@ export default function ResourcesScreen() {
       {loading || seeding ? (
         <View style={styles.loaderWrap}>
           <ActivityIndicator size="large" color={GREEN} />
-          <Text style={styles.loaderText}>Loading resources…</Text>
+          <Text style={styles.loaderText}>{t.resourcesLoading}</Text>
         </View>
       ) : (
         <ScrollView
@@ -332,7 +332,7 @@ export default function ResourcesScreen() {
           {filtered.length === 0 ? (
             <View style={styles.emptyWrap}>
               <MaterialIcons name="inbox" size={48} color={BORDER} />
-              <Text style={styles.emptyText}>No resources found</Text>
+              <Text style={styles.emptyText}>{t.resourcesEmpty}</Text>
             </View>
           ) : (
             filtered.map((r) => (
