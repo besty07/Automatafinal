@@ -1,50 +1,47 @@
-# Welcome to your Expo app 👋
+# Krishi-Mitra 🌾
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Krishi-Mitra (Farmer's Friend) is a comprehensive React Native application built with **Expo** and **Firebase**, designed to empower farmers with real-time data, predictive features, and access to essential resources.
 
-## Get started
+## 🌟 Key Features
 
-1. Install dependencies
+- **Real-Time Commodity Prices:** A live ticker showing the latest market prices for various crops like Soybeans, Wheat, Cotton, etc.
+- **Smart Hedging:** A complete 4-step flow to help farmers lock in prices and protect their harvest from market volatility.
+- **Smart Suggestions:**
+  - **Crop & Seed Recommendations:** Tailored advice for maximum yield.
+  - **Fertilizer Suggestions:** Custom fertilizer usage guidance.
+- **Government Schemes:** Easy access to agricultural policies, subsidies, and government programs.
+- **Weather Forecast:** Hyper-local weather data for better farming decisions.
+- **Historical Price Charts:** Intuitive charts to analyze past market trends.
+- **Reminders & Alerts:** Schedule agricultural tasks and get notified on time.
+- **Accessibility & Localization:** Built-in multi-language support and voice (mic) interactions for improved accessibility for all farmers.
+- **Dealer & Farmer Portals:** Separate authentication and dashboards for farmers and dealers.
 
+## 🛠️ Technology Stack
+
+- **Frontend:** React Native, Expo Router, Animated API
+- **Backend & Auth:** Firebase, Firestore
+- **Key Libraries:** `react-native-chart-kit`, `@react-native-community/datetimepicker`, `expo-speech-recognition`, `expo-location`, `expo-notifications`, `axios`
+
+## 🚀 Getting Started
+
+1. **Install Dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
+2. **Setup Firebase**
+   Create a `.env` file based on your Firebase configuration. Ensure your `firebaseConfig.ts` and `firestore.rules` are set up.
 
+3. **Start the Development Server**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## 📱 Running the App
+- Open your Expo Go app on your phone and scan the QR Code.
+- Press `a` for Android emulator.
+- Press `i` for iOS Simulator.
+- Press `w` to run on the web.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🤝 Contribution
+Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
